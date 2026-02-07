@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="style.css">
   <link rel='stylesheet'
     href='https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css'>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <title>EcoRain</title>
 </head>
 <div class="container-fluid">
@@ -82,7 +82,7 @@
             <p style="color: black;">0L collected today</p>
           </div>
         </div>
-        <div class="card" style="width: 17rem; margin-left: 2.5rem; height: 18rem;">
+        <div class="card" style="width: 17rem; margin-left: 2.5rem; height: 29rem;">
           <div class="card-body">
             <h5 class="card-title">WATER QUALITY </h5>
             <div style="flex-direction: row;">
@@ -90,7 +90,7 @@
               <p style="opacity: 0.5;">updated 0s ago</p>
             </div>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4">
-              <div class="card" style="width: 12rem;">
+              <div class="card" style="width: 15rem;">
                 <div class="card-body">
                   <img src="./img/heart-rate.svg" alt="Bootstrap" width="30" height="24">
                   <span class="card-title">pH Level</span>
@@ -98,7 +98,14 @@
                   <span style="color: green; font-weight: bold;">None</span>
                 </div>
               </div>
-
+              <div class="card" style="width: 15rem; margin-top: 1rem;">
+                <div class="card-body">
+                  <img src="./img/humidity.svg" alt="Bootstrap" width="30" height="24">
+                  <span class="card-title">Turbidity</span>
+                  <p style="font-size: 2rem;">0</p>
+                  <span style="color: green; font-weight: bold;">None</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -110,13 +117,31 @@
             <canvas id="bar-chart" height="100"></canvas>
           </div>
         </div>
+        <div class="card chart1">
+          <div class="card-header">
+            <h1 class="location-title" id="locationName">Rainfall Forecast</h1>
+          </div>
+          <div class="card-body">
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="forecastSection" style="display: none;">
+
+              <div class="card rainfall-forecast-card">
+                <div class="card-body">
+                  <div class="card-body">
+
+                    <div id="rainfallForecast"></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
 
-<body>
+      <body>
 
-</body>
-<script src="script.js"></script>
+      </body>
+      <script src="script.js" defer></script>
+
 </html>

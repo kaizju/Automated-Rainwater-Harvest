@@ -1,16 +1,101 @@
-.body{
+.body {
     color: rgb(21, 33, 33);
 }
 
 .col-md-3 {
-  background-color: #0F172A;
-  
+    background-color: #0F172A;
+
 }
-.wow{
+
+.wow {
     background-color: #96b3f8;
     color: aliceblue;
-} 
-.chart{
+}
+
+.chart {
     margin-left: 3rem;
     width: 32rem;
+}
+
+.chart1 {
+    width: 40rem;
+    margin-top: 3rem;
+}
+
+.location-title {
+    color: #000000;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+.error {
+    color: #dc3545;
+    text-align: center;
+    padding: 20px;
+}
+.rainfall-title {
+    color: #6c757d;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.forecast-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #f0f0f0;
+    flex-direction: row;
+}
+
+.forecast-item:last-child {
+    border-bottom: none;
+}
+
+.forecast-icon {
+    font-size: 2rem;
+    width: 50px;
+    text-align: center;
+}
+
+.forecast-details {
+    flex: 1;
+    margin-left: 15px;
+}
+
+.forecast-day {
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.forecast-chance {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.forecast-amount {
+    text-align: right;
+    min-width: 100px;
+}
+
+.forecast-amount-value {
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.forecast-amount-label {
+    color: #9ca3af;
+    font-size: 0.85rem;
+}
+
+.badge-custom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
 }
