@@ -1,6 +1,26 @@
 {
+  "name": "automated-rainwater-harvest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+    
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaizju/Automated-Rainwater-Harvest.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kaizju/Automated-Rainwater-Harvest/issues"
+  },
+  "homepage": "https://github.com/kaizju/Automated-Rainwater-Harvest#readme",
   "dependencies": {
-    "chart.js": "^4.5.1",
-    "chat.js": "^1.0.2"
+    "electron": "^40.2.1"
   }
 }
