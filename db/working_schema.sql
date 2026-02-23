@@ -24,4 +24,13 @@ create table tank (
     status_tank varchar(255) unique not null
 ) ENGINE=InnoDB;
 
+create table sensors (
+    sensor_id int auto_increment primary key,
+    tank_id int,
+    sensor_type varchar(255) not null,
+    model varchar(255) not null,
+    unit varchar(255) not null,
+    is_active varchar(255) not null,
+    foreign key (tank_id) references tank (tank_id)
+) ENGINE=InnoDB;
 commit;
