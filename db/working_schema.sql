@@ -37,8 +37,10 @@ create table sensors (
 create table sensor_readings (
     reading_id int auto_increment primary key,
     sensor_id int,
+    user_id int,
     recorded_at timestamp default current_timestamp,
     anomaly varchar(255) not null,
     foreign key (sensor_id) references sensors (sensor_id)
+    foreign key (user_id) references user(user_id)
 ) ENGINE=InnoDB;
 commit;
