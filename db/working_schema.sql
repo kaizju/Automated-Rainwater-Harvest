@@ -33,4 +33,12 @@ create table sensors (
     is_active varchar(255) not null,
     foreign key (tank_id) references tank (tank_id)
 ) ENGINE=InnoDB;
+
+create table sensor_readings (
+    reading_id int auto_increment primary key,
+    sensor_id int,
+    recorded_at timestamp default current_timestamp,
+    anomaly varchar(255) not null,
+    foreign key (sensor_id) references sensors (sensor_id)
+) ENGINE=InnoDB;
 commit;
