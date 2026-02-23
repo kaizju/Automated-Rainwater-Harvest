@@ -16,4 +16,12 @@ foreign key (user_id) references user(user_id)
 
 ) ENGINE=InnoDB;
 
+create table tank (
+    tank_id int auto_increment primary key,
+    tankname varchar(255) unique not null,
+    location_add varchar(255) not null,
+    capacity varchar(255) not null,
+    status_tank varchar(255) unique not null
+) ENGINE=InnoDB;
+
 commit;
