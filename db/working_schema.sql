@@ -1,46 +1,49 @@
-Start Transaction;
+START TRANSACTION;
 
-create table users (
-    user_id int auto_increment primary key,
-    username varchar(255) unique not null,
-    updated_at timestamp default current_timestamp
-    on update current_timestamp
+CREATE DATABASE rainwater;
+USE rainwater;
+
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-create table user_activity_logs (
-    activity_id int auto_increment primary key,
-user_id int,
-action varchar(50) not null,
-created_at timestamp default current_timestamp,
-foreign key (user_id) references user(user_id)
-
+CREATE TABLE user_activity_logs (
+    activity_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    action VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)  -- ✅ Fixed: "user" → "users"
 ) ENGINE=InnoDB;
 
-create table tank (
-    tank_id int auto_increment primary key,
-    tankname varchar(255) unique not null,
-    location_add varchar(255) not null,
-    capacity varchar(255) not null,
-    status_tank varchar(255) unique not null
+CREATE TABLE tank (
+    tank_id INT AUTO_INCREMENT PRIMARY KEY,
+    tankname VARCHAR(255) UNIQUE NOT NULL,
+    location_add VARCHAR(255) NOT NULL,
+    capacity VARCHAR(255) NOT NULL,
+    status_tank VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB;
 
-create table sensors (
-    sensor_id int auto_increment primary key,
-    tank_id int,
-    sensor_type varchar(255) not null,
-    model varchar(255) not null,
-    unit varchar(255) not null,
-    is_active varchar(255) not null,
-    foreign key (tank_id) references tank (tank_id)
+CREATE TABLE sensors (
+    sensor_id INT AUTO_INCREMENT PRIMARY KEY,
+    tank_id INT,
+    sensor_type VARCHAR(255) NOT NULL,
+    model VARCHAR(255) NOT NULL,
+    unit VARCHAR(255) NOT NULL,
+    is_active VARCHAR(255) NOT NULL,
+    FOREIGN KEY (tank_id) REFERENCES tank(tank_id)
 ) ENGINE=InnoDB;
 
-create table sensor_readings (
-    reading_id int auto_increment primary key,
-    sensor_id int,
-    user_id int,
-    recorded_at timestamp default current_timestamp,
-    anomaly varchar(255) not null,
-    foreign key (sensor_id) references sensors (sensor_id)
-    foreign key (user_id) references user(user_id)
+CREATE TABLE sensor_readings (
+    reading_id INT AUTO_INCREMENT PRIMARY KEY,
+    sensor_id INT,
+    user_id INT,
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    anomaly VARCHAR(255) NOT NULL,
+    FOREIGN KEY (sensor_id) REFERENCES sensors(sensor_id),  
+    FOREIGN KEY (user_id) REFERENCES users(user_id)         
 ) ENGINE=InnoDB;
-commit;
+
+COMMIT;
