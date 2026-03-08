@@ -46,4 +46,26 @@ CREATE TABLE sensor_readings (
     FOREIGN KEY (user_id) REFERENCES users(user_id)         
 ) ENGINE=InnoDB;
 
+CREATE TABLE water_usage (
+    usage_id INT AUTO_INCREMENT PRIMARY KEY,
+    tank_id INT,
+    user_id INT,
+    usage_liters DECIMAL(10,2) NOT NULL,
+    usage_type VARCHAR(255) NOT NULL,
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tank_id) REFERENCES tank(tank_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE water_quality (
+    quality_id INT AUTO_INCREMENT PRIMARY KEY,
+    tank_id INT,
+    user_id INT,
+    turbidity DECIMAL(10,2) NOT NULL,        
+    ph_level DECIMAL(4,2) NOT NULL,          
+    quality_status VARCHAR(255) NOT NULL,    
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tank_id) REFERENCES tank(tank_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+) ENGINE=InnoDB;
 COMMIT;
