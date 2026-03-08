@@ -22,7 +22,13 @@ body {
     margin-left: 1rem;
     width: 30rem;
 }
-
+.card-1{
+    margin-top: 6rem;
+    
+}
+.prog{
+    width: 20rem;
+}
 .chart1 {
     width: 40rem;
     margin-top: 1rem;
