@@ -129,7 +129,7 @@ function displayRainfallForecast(forecasts) {
     document.getElementById('rainfallForecast').innerHTML = forecastHTML;
 }
 
-// Initialize
+
 async function init() {
     try {      
         const data = await fetchWeatherData();       
@@ -150,7 +150,7 @@ async function init() {
 
 async function fetchTankData() {
   try {
-    const res = await fetch('./tank.php'); // adjust path to your api.php
+    const res = await fetch('/Automated-Rainwater-Harvest/Dashboard/tank.php');
     const data = await res.json();
     if (data.error) { console.error(data.error); return; }
 
