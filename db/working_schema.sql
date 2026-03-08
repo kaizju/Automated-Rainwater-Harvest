@@ -1,7 +1,7 @@
 START TRANSACTION;
 
-CREATE DATABASE rainwater;
-USE rainwater;
+CREATE DATABASE automated_rainwater;
+USE automated_rainwater;
 
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -22,7 +22,8 @@ CREATE TABLE tank (
     tank_id INT AUTO_INCREMENT PRIMARY KEY,
     tankname VARCHAR(255) UNIQUE NOT NULL,
     location_add VARCHAR(255) NOT NULL,
-    capacity VARCHAR(255) NOT NULL,
+    current_liters INT NOT NULL DEFAULT 0,
+     max_capacity int NOT NULL DEFAULT 5000,
     status_tank VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB;
 
