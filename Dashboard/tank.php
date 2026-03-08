@@ -1,6 +1,5 @@
 <?php
-require_once '../Connections/config.php';
-header('Content-Type: application/json');
+require_once __DIR__ . '/../Connections/config.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
