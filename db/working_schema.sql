@@ -15,7 +15,7 @@ CREATE TABLE user_activity_logs (
     user_id INT,
     action VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)  -- ✅ Fixed: "user" → "users"
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE tank (
