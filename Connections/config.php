@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 define('BASE_URL', 'http://localhost/Automated-RainWater-Harvest');
 
 define('DB_HOST', 'localhost');
@@ -17,7 +17,4 @@ try {
 } catch(PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
-
-
-
 ?>

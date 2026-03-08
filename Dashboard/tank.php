@@ -1,11 +1,12 @@
 <?php
- require_once '../../Connections/config.php';
+require_once '../Connections/config.php';
+header('Content-Type: application/json');
 
 $method = $_SERVER['REQUEST_METHOD'];
 
 // GET — fetch tank data
 if ($method === 'GET') {
-   $stmt = $pdo->query("SELECT * FROM tank ORDER BY tank_id LIMIT 1");
+   $stmt = $pdo->prepare("UPDATE tank SET current_liters = ? WHERE tank_id = 1");
     $tank = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$tank) {
