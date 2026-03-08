@@ -150,7 +150,7 @@ async function init() {
 
 async function fetchTankData() {
   try {
-    const res = await fetch('./Automated-Rainwater-Harvest/Dashboard/tank.php');
+    const res = await fetch('../Dashboard/tank.php');
     const data = await res.json();
     if (data.error) { console.error(data.error); return; }
 
