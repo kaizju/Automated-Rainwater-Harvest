@@ -1,0 +1,35 @@
+body {
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+
+.col-md-3 {
+    background-color: #0F172A;
+
+}
+
+.nav1 {
+    padding: 12px 28px;
+    background-color: #0F172A;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.nav1:hover {
+    background-color: #0F172A;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px #0F172A;
+}
+
+.nav1:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
