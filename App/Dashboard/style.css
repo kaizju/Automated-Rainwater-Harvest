@@ -1,14 +1,37 @@
 body {
-  background-color: #f0f0f0;
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 
 .col-md-3 {
     background-color: #0F172A;
 
+}
+
+.nav1 {
+    padding: 12px 28px;
+    background-color: #0F172A;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.nav1:hover {
+    background-color: #0F172A;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px #0F172A;
+}
+
+.nav1:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 .wow {
@@ -23,6 +46,15 @@ body {
     width: 30rem;
 }
 
+.card-1 {
+    margin-top: 6rem;
+
+}
+
+.prog {
+    width: 20rem;
+}
+
 .chart1 {
     width: 40rem;
     margin-top: 1rem;
@@ -34,11 +66,13 @@ body {
     margin-bottom: 10px;
     font-size: 1rem;
 }
+
 .error {
     color: #dc3545;
     text-align: center;
     padding: 20px;
 }
+
 .rainfall-title {
     color: #6c757d;
     font-size: 0.85rem;
@@ -105,22 +139,15 @@ body {
     border-radius: 20px;
     font-size: 0.85rem;
 }
-/* Small tablets: 480px+ */
-@media (min-width: 480px) {
 
-}
+/* Small tablets: 480px+ */
+@media (min-width: 480px) {}
 
 /* Tablets: 768px+ */
-@media (min-width: 768px) {
-
-}
+@media (min-width: 768px) {}
 
 /* Laptops: 1024px+ */
-@media (min-width: 1024px) {
-
-}
+@media (min-width: 1024px) {}
 
 /* Desktops: 1280px+ */
-@media (min-width: 1280px) {
-
-}
+@media (min-width: 1280px) {}
