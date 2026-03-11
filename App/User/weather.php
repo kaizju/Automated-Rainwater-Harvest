@@ -383,20 +383,20 @@ $rfDataJson   = json_encode($rfData);
   </div>
 
   <nav class="nav-section">
-    <a href="<?php echo BASE_URL;?>/App/Dashboard/dashboard.php" class="nav-link">
+    <a href="<?php echo BASE_URL;?>/App/User/user.php" class="nav-link">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
         <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
       </svg>
       Dashboard
     </a>
-    <a href="<?php echo BASE_URL;?>/App/usage/usage.php" class="nav-link">
+    <a href="<?php echo BASE_URL;?>/App/User/usage.php" class="nav-link">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
       </svg>
       Usage Stats
     </a>
-    <a href="<?php echo BASE_URL;?>/App/weather/weather.php" class="nav-link">
+    <a href="<?php echo BASE_URL;?>/App/User/weather.php" class="nav-link">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
       </svg>
