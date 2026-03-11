@@ -6,11 +6,9 @@ require_once __DIR__ . '/../Others/activity-logger.php';
 if (isLoggedIn()) {
     switch ($_SESSION['role']) {
         case 'admin':
-            redirect('/App/Dashboard/index.html');
+            redirect('/App/Dashboard/dashboard.php');
             break;
-        case 'manager':
-            redirect('/app/manager/dashboard.php');
-            break;
+       
         case 'user':
             redirect('/app/user/dashboard.php');
             break;
@@ -36,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         switch ($user['role']) {
             case 'admin':
-                redirect('/App/Dashboard/index.html');
+                redirect('/App/Dashboard/dashboard.php');
                 break;
 
             case 'user':
@@ -637,7 +635,7 @@ renderHeader('EcoRain — Sign In');
                 return;
             }
 
-            // Show loading spinner while PHP processes
+            
             const btn = document.getElementById('loginBtn');
             btn.classList.add('loading');
             btn.disabled = true;
