@@ -5,9 +5,15 @@ require_once __DIR__ . '/../Others/activity-logger.php';
 
 if (isLoggedIn()) {
     switch ($_SESSION['role']) {
-        case 'admin':   redirect('/App/Dashboard/index.html');   break;
-        case 'manager': redirect('/app/manager/dashboard.php'); break;
-        case 'user':    redirect('/app/user/dashboard.php');    break;
+        case 'admin':
+            redirect('/App/Dashboard/index.html');
+            break;
+        case 'manager':
+            redirect('/app/manager/dashboard.php');
+            break;
+        case 'user':
+            redirect('/app/user/dashboard.php');
+            break;
     }
 }
 
@@ -29,9 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         logActivity($pdo, $user['id'], $user['email'], 'login', 'success');
 
         switch ($user['role']) {
-            case 'admin':   redirect('/App/Dashboard/index.html');   break;
-           
-            case 'user':    redirect('/app/user/dashboard.php');    break;
+            case 'admin':
+                redirect('/App/Dashboard/index.html');
+                break;
+
+            case 'user':
+                redirect('/app/user/dashboard.php');
+                break;
         }
     } else {
         $error = 'Invalid credentials or email not verified.';
@@ -43,13 +53,18 @@ renderHeader('EcoRain — Sign In');
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoRain — Sign In</title>
     <style>
         /* Basic Login Form - Clean & Simple */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -63,7 +78,10 @@ renderHeader('EcoRain — Sign In');
             color: #334155;
         }
 
-        .login-container { width: 100%; max-width: 400px; }
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+        }
 
         .login-card {
             background: white;
@@ -73,9 +91,22 @@ renderHeader('EcoRain — Sign In');
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        .login-header { text-align: center; margin-bottom: 32px; }
-        .login-header h2 { font-size: 1.875rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
-        .login-header p  { color: #64748b; font-size: 0.875rem; }
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-header h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
 
         /* Server-side error banner */
         .server-error {
@@ -90,9 +121,15 @@ renderHeader('EcoRain — Sign In');
             animation: fadeUp 0.25s ease;
         }
 
-        .form-group { margin-bottom: 20px; }
+        .form-group {
+            margin-bottom: 20px;
+        }
 
-        .input-wrapper { position: relative; display: flex; flex-direction: column; }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
 
         .input-wrapper input {
             background: white;
@@ -106,7 +143,9 @@ renderHeader('EcoRain — Sign In');
             outline: none;
         }
 
-        .input-wrapper input::placeholder { color: transparent; }
+        .input-wrapper input::placeholder {
+            color: transparent;
+        }
 
         .input-wrapper label {
             position: absolute;
@@ -120,22 +159,34 @@ renderHeader('EcoRain — Sign In');
         }
 
         .input-wrapper input:focus,
-        .input-wrapper input:not(:placeholder-shown) { border-color: #6366f1; }
+        .input-wrapper input:not(:placeholder-shown) {
+            border-color: #6366f1;
+        }
 
-        .input-wrapper input:focus + label,
-        .input-wrapper input:not(:placeholder-shown) + label {
+        .input-wrapper input:focus+label,
+        .input-wrapper input:not(:placeholder-shown)+label {
             transform: translateY(-8px) scale(0.75);
             color: #6366f1;
             font-weight: 500;
         }
 
         /* Error state overrides */
-        .form-group.error .input-wrapper input { border-color: #ef4444; }
-        .form-group.error .input-wrapper input + label { color: #ef4444; }
+        .form-group.error .input-wrapper input {
+            border-color: #ef4444;
+        }
+
+        .form-group.error .input-wrapper input+label {
+            color: #ef4444;
+        }
 
         /* Password toggle */
-        .password-wrapper { position: relative; }
-        .password-wrapper input { padding-right: 48px; }
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 48px;
+        }
 
         .password-toggle {
             position: absolute;
@@ -153,7 +204,9 @@ renderHeader('EcoRain — Sign In');
             justify-content: center;
         }
 
-        .password-toggle:hover { color: #1e293b; }
+        .password-toggle:hover {
+            color: #1e293b;
+        }
 
         .eye-icon {
             display: block;
@@ -184,7 +237,10 @@ renderHeader('EcoRain — Sign In');
             min-height: 16px;
         }
 
-        .error-message.show { opacity: 1; transform: translateY(0); }
+        .error-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         /* Form options */
         .form-options {
@@ -196,8 +252,16 @@ renderHeader('EcoRain — Sign In');
             gap: 12px;
         }
 
-        .remember-wrapper { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .remember-wrapper input[type="checkbox"] { display: none; }
+        .remember-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .remember-wrapper input[type="checkbox"] {
+            display: none;
+        }
 
         .checkbox-label {
             color: #64748b;
@@ -225,12 +289,12 @@ renderHeader('EcoRain — Sign In');
             background: white;
         }
 
-        .remember-wrapper input[type="checkbox"]:checked ~ .checkbox-label .checkmark {
+        .remember-wrapper input[type="checkbox"]:checked~.checkbox-label .checkmark {
             background: #6366f1;
             border-color: #6366f1;
         }
 
-        .remember-wrapper input[type="checkbox"]:checked ~ .checkbox-label .checkmark::after {
+        .remember-wrapper input[type="checkbox"]:checked~.checkbox-label .checkmark::after {
             content: '✓';
             color: white;
             font-size: 10px;
@@ -245,7 +309,9 @@ renderHeader('EcoRain — Sign In');
             transition: color 0.2s ease;
         }
 
-        .forgot-password:hover { color: #4f46e5; }
+        .forgot-password:hover {
+            color: #4f46e5;
+        }
 
         /* Button */
         .login-btn {
@@ -263,11 +329,22 @@ renderHeader('EcoRain — Sign In');
             margin-bottom: 24px;
         }
 
-        .login-btn:hover:not(:disabled) { background: #4f46e5; }
-        .login-btn:active:not(:disabled) { transform: translateY(1px); }
-        .login-btn:disabled { pointer-events: none; background: #a5a6f6; }
+        .login-btn:hover:not(:disabled) {
+            background: #4f46e5;
+        }
 
-        .btn-text { transition: opacity 0.2s ease; }
+        .login-btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .login-btn:disabled {
+            pointer-events: none;
+            background: #a5a6f6;
+        }
+
+        .btn-text {
+            transition: opacity 0.2s ease;
+        }
 
         .btn-loader {
             position: absolute;
@@ -284,19 +361,51 @@ renderHeader('EcoRain — Sign In');
             transition: opacity 0.2s ease;
         }
 
-        .login-btn.loading .btn-text   { opacity: 0; }
-        .login-btn.loading .btn-loader { opacity: 1; }
-        .login-btn.loading             { pointer-events: none; background: #a5a6f6; }
+        .login-btn.loading .btn-text {
+            opacity: 0;
+        }
+
+        .login-btn.loading .btn-loader {
+            opacity: 1;
+        }
+
+        .login-btn.loading {
+            pointer-events: none;
+            background: #a5a6f6;
+        }
 
         /* Signup link */
-        .signup-link { text-align: center; }
-        .signup-link p { color: #64748b; font-size: 0.875rem; }
-        .signup-link a { color: #6366f1; text-decoration: none; font-weight: 500; transition: color 0.2s ease; }
-        .signup-link a:hover { color: #4f46e5; }
+        .signup-link {
+            text-align: center;
+        }
+
+        .signup-link p {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .signup-link a {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .signup-link a:hover {
+            color: #4f46e5;
+        }
 
         /* Success */
-        .success-message { display: none; text-align: center; padding: 32px 20px; }
-        .success-message.show { display: block; animation: fadeUp 0.35s ease forwards; }
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 32px 20px;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: fadeUp 0.35s ease forwards;
+        }
 
         .success-icon {
             width: 52px;
@@ -312,178 +421,233 @@ renderHeader('EcoRain — Sign In');
             animation: successPulse 0.5s ease;
         }
 
-        .success-message h3 { color: #1e293b; font-size: 1.25rem; margin-bottom: 8px; }
-        .success-message p  { color: #64748b; font-size: 0.875rem; }
+        .success-message h3 {
+            color: #1e293b;
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+        }
 
-        @keyframes spin         { to   { transform: translate(-50%,-50%) rotate(360deg); } }
-        @keyframes fadeUp       { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes successPulse { 0%   { transform:scale(0); } 55% { transform:scale(1.15); } 100% { transform:scale(1); } }
+        .success-message p {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes successPulse {
+            0% {
+                transform: scale(0);
+            }
+
+            55% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
 
         @media (max-width: 480px) {
-            .login-card { padding: 24px; }
-            .login-header h2 { font-size: 1.5rem; }
-            .form-options { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .login-card {
+                padding: 24px;
+            }
+
+            .login-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .form-options {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div class="login-container">
-    <div class="login-card">
+    <div class="login-container">
+        <div class="login-card">
 
-        <div class="login-header">
-            <h2>Sign In</h2>
-            <p>Enter your credentials to access your account</p>
-        </div>
+            <div class="login-header">
+                <h2>Sign In</h2>
+                <p>Enter your credentials to access your account</p>
+            </div>
 
-        <?php if ($error): ?>
-            <div class="server-error"><?php echo htmlspecialchars($error); ?></div>
-        <?php endif; ?>
+            <?php if ($error): ?>
+                <div class="server-error"><?php echo htmlspecialchars($error); ?></div>
+            <?php endif; ?>
 
-        <form method="POST" class="login-form" id="loginForm" novalidate>
+            <form method="POST" class="login-form" id="loginForm" novalidate>
 
-            <div class="form-group" id="emailGroup">
-                <div class="input-wrapper">
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder=" "
-                        required
-                        autocomplete="email"
-                        value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"
-                    >
-                    <label for="email">Email Address</label>
+                <div class="form-group" id="emailGroup">
+                    <div class="input-wrapper">
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder=" "
+                            required
+                            autocomplete="email"
+                            value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+                        <label for="email">Email Address</label>
+                    </div>
+                    <span class="error-message" id="emailError"></span>
                 </div>
-                <span class="error-message" id="emailError"></span>
-            </div>
 
-            <div class="form-group" id="passwordGroup">
-                <div class="input-wrapper password-wrapper">
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder=" "
-                        required
-                        autocomplete="current-password"
-                    >
-                    <label for="password">Password</label>
-                    <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
-                        <span class="eye-icon" id="eyeIcon"></span>
-                    </button>
+                <div class="form-group" id="passwordGroup">
+                    <div class="input-wrapper password-wrapper">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder=" "
+                            required
+                            autocomplete="current-password">
+                        <label for="password">Password</label>
+                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
+                            <span class="eye-icon" id="eyeIcon"></span>
+                        </button>
+                    </div>
+                    <span class="error-message" id="passwordError"></span>
                 </div>
-                <span class="error-message" id="passwordError"></span>
+
+                <div class="form-options">
+                    <label class="remember-wrapper">
+                        <input type="checkbox" id="remember" name="remember">
+                        <span class="checkbox-label">
+                            <span class="checkmark"></span>
+                            Remember me
+                        </span>
+                    </label>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span class="btn-text">Sign In</span>
+                    <span class="btn-loader"></span>
+                </button>
+
+            </form>
+
+            <div class="signup-link" id="signupLink">
+                <p>Don't have an account? <a href="#">Create one</a></p>
             </div>
 
-            <div class="form-options">
-                <label class="remember-wrapper">
-                    <input type="checkbox" id="remember" name="remember">
-                    <span class="checkbox-label">
-                        <span class="checkmark"></span>
-                        Remember me
-                    </span>
-                </label>
-                <a href="#" class="forgot-password">Forgot password?</a>
+            <div class="success-message" id="successMessage">
+                <div class="success-icon">✓</div>
+                <h3>Login Successful!</h3>
+                <p>Redirecting to your dashboard...</p>
             </div>
 
-            <button type="submit" class="login-btn" id="loginBtn">
-                <span class="btn-text">Sign In</span>
-                <span class="btn-loader"></span>
-            </button>
-
-        </form>
-
-        <div class="signup-link" id="signupLink">
-            <p>Don't have an account? <a href="#">Create one</a></p>
         </div>
-
-        <div class="success-message" id="successMessage">
-            <div class="success-icon">✓</div>
-            <h3>Login Successful!</h3>
-            <p>Redirecting to your dashboard...</p>
-        </div>
-
     </div>
-</div>
 
-<script>
-    // ── Password toggle ────────────────────────────────────────────────────────
-    document.getElementById('passwordToggle').addEventListener('click', function () {
-        const input   = document.getElementById('password');
-        const icon    = document.getElementById('eyeIcon');
-        const visible = input.type === 'password';
-        input.type    = visible ? 'text' : 'password';
-        icon.classList.toggle('show-password', visible);
-    });
+    <script>
+        // ── Password toggle ────────────────────────────────────────────────────────
+        document.getElementById('passwordToggle').addEventListener('click', function() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            const visible = input.type === 'password';
+            input.type = visible ? 'text' : 'password';
+            icon.classList.toggle('show-password', visible);
+        });
 
-    // ── Client-side validation helpers ────────────────────────────────────────
-    function showError(groupId, errorId, msg) {
-        document.getElementById(groupId).classList.add('error');
-        const el = document.getElementById(errorId);
-        el.textContent = msg;
-        el.classList.add('show');
-    }
+        // ── Client-side validation helpers ────────────────────────────────────────
+        function showError(groupId, errorId, msg) {
+            document.getElementById(groupId).classList.add('error');
+            const el = document.getElementById(errorId);
+            el.textContent = msg;
+            el.classList.add('show');
+        }
 
-    function clearError(groupId, errorId) {
-        document.getElementById(groupId).classList.remove('error');
-        const el = document.getElementById(errorId);
-        el.textContent = '';
-        el.classList.remove('show');
-    }
+        function clearError(groupId, errorId) {
+            document.getElementById(groupId).classList.remove('error');
+            const el = document.getElementById(errorId);
+            el.textContent = '';
+            el.classList.remove('show');
+        }
 
-    function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+        function isValidEmail(v) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        }
 
-    // Live validation
-    document.getElementById('email').addEventListener('input', function () {
-        if (this.value && !isValidEmail(this.value)) {
-            showError('emailGroup', 'emailError', 'Please enter a valid email address.');
-        } else {
+        // Live validation
+        document.getElementById('email').addEventListener('input', function() {
+            if (this.value && !isValidEmail(this.value)) {
+                showError('emailGroup', 'emailError', 'Please enter a valid email address.');
+            } else {
+                clearError('emailGroup', 'emailError');
+            }
+        });
+
+        document.getElementById('password').addEventListener('input', function() {
+            if (this.value.length > 0 && this.value.length < 6) {
+                showError('passwordGroup', 'passwordError', 'Password must be at least 6 characters.');
+            } else {
+                clearError('passwordGroup', 'passwordError');
+            }
+        });
+
+        // ── Form submit (client-side gate before PHP takes over) ──────────────────
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            let valid = true;
+
             clearError('emailGroup', 'emailError');
-        }
-    });
-
-    document.getElementById('password').addEventListener('input', function () {
-        if (this.value.length > 0 && this.value.length < 6) {
-            showError('passwordGroup', 'passwordError', 'Password must be at least 6 characters.');
-        } else {
             clearError('passwordGroup', 'passwordError');
-        }
-    });
 
-    // ── Form submit (client-side gate before PHP takes over) ──────────────────
-    document.getElementById('loginForm').addEventListener('submit', function (e) {
-        const email    = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        let valid = true;
+            if (!email) {
+                showError('emailGroup', 'emailError', 'Email address is required.');
+                valid = false;
+            } else if (!isValidEmail(email)) {
+                showError('emailGroup', 'emailError', 'Please enter a valid email address.');
+                valid = false;
+            }
 
-        clearError('emailGroup', 'emailError');
-        clearError('passwordGroup', 'passwordError');
+            if (!password) {
+                showError('passwordGroup', 'passwordError', 'Password is required.');
+                valid = false;
+            } else if (password.length < 6) {
+                showError('passwordGroup', 'passwordError', 'Password must be at least 6 characters.');
+                valid = false;
+            }
 
-        if (!email) {
-            showError('emailGroup', 'emailError', 'Email address is required.'); valid = false;
-        } else if (!isValidEmail(email)) {
-            showError('emailGroup', 'emailError', 'Please enter a valid email address.'); valid = false;
-        }
+            if (!valid) {
+                e.preventDefault();
+                return;
+            }
 
-        if (!password) {
-            showError('passwordGroup', 'passwordError', 'Password is required.'); valid = false;
-        } else if (password.length < 6) {
-            showError('passwordGroup', 'passwordError', 'Password must be at least 6 characters.'); valid = false;
-        }
+            // Show loading spinner while PHP processes
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+        });
 
-        if (!valid) { e.preventDefault(); return; }
-
-        // Show loading spinner while PHP processes
-        const btn = document.getElementById('loginBtn');
-        btn.classList.add('loading');
-        btn.disabled = true;
-    });
-
-    // ── Show success state if PHP already redirected (won't fire on redirect) ─
-    // Kept here in case you need a client-only success flow in future
-</script>
+        // ── Show success state if PHP already redirected (won't fire on redirect) ─
+        // Kept here in case you need a client-only success flow in future
+    </script>
 
 </body>
+
 </html>
 <?php renderFooter(); ?>

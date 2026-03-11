@@ -1,6 +1,3 @@
--- ============================================================
--- schema.sql  –  run this ONCE to create the database & tables
--- ============================================================
 
 CREATE DATABASE IF NOT EXISTS automated_rainwater
     CHARACTER SET utf8mb4
@@ -8,9 +5,6 @@ CREATE DATABASE IF NOT EXISTS automated_rainwater
 
 USE automated_rainwater;
 
--- ------------------------------------------------------------
--- users
--- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
     id                        INT AUTO_INCREMENT PRIMARY KEY,
     email                     VARCHAR(255) UNIQUE NOT NULL,
@@ -23,12 +17,10 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at                TIMESTAMP           DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- user_activity_logs
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS user_activity_logs (
     activity_id  INT AUTO_INCREMENT PRIMARY KEY,
-    user_id      INT          NULL,                      -- NULL allowed for failed logins
+    user_id      INT          NULL,                     
     email        VARCHAR(255) NULL,
     action       VARCHAR(50)  NOT NULL,
     status       ENUM('success','failed') NOT NULL DEFAULT 'success',
@@ -38,9 +30,6 @@ CREATE TABLE IF NOT EXISTS user_activity_logs (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- tank
--- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tank (
     tank_id        INT AUTO_INCREMENT PRIMARY KEY,
     tankname       VARCHAR(255) UNIQUE NOT NULL,
@@ -50,9 +39,6 @@ CREATE TABLE IF NOT EXISTS tank (
     status_tank    VARCHAR(255)        NOT NULL
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- sensors
--- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sensors (
     sensor_id   INT AUTO_INCREMENT PRIMARY KEY,
     tank_id     INT          NOT NULL,
@@ -63,9 +49,6 @@ CREATE TABLE IF NOT EXISTS sensors (
     FOREIGN KEY (tank_id) REFERENCES tank(tank_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- sensor_readings
--- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sensor_readings (
     reading_id  INT AUTO_INCREMENT PRIMARY KEY,
     sensor_id   INT          NOT NULL,
@@ -76,9 +59,6 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     FOREIGN KEY (user_id)   REFERENCES users(id)          ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- water_usage
--- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS water_usage (
     usage_id     INT AUTO_INCREMENT PRIMARY KEY,
     tank_id      INT             NOT NULL,
@@ -90,9 +70,6 @@ CREATE TABLE IF NOT EXISTS water_usage (
     FOREIGN KEY (user_id) REFERENCES users(id)     ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- water_quality
--- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS water_quality (
     quality_id     INT AUTO_INCREMENT PRIMARY KEY,
     tank_id        INT           NOT NULL,
