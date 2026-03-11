@@ -1,4 +1,4 @@
 <?php
-header('Location: /Automated-Rainwater-Harvest/Dashboard/index.html');
+header('Location: /Automated-Rainwater-Harvest/Login/login.php');
 exit;
 ?>

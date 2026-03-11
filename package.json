@@ -20,6 +20,6 @@
   },
   "homepage": "https://github.com/kaizju/Automated-Rainwater-Harvest#readme",
   "devDependencies": {
-    "electron": "^40.6.0"
+    "electron": "^40.8.0"
   }
 }
