@@ -1,5 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EcoRain – Weather Monitor</title>
+  <link rel='stylesheet'
+    href='https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css'>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="w.css">
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<div class="col-md-3">
+  <div class="sidebar-logo">
+    <div class="logo-icon">💧</div>
+    <span>EcoRain</span>
+  </div>
+
+  <a href="#" class="nav1">
+   <i class="fi fi-rr-analytics"></i>
+    <span>Dashboard</span>
+  </a>
+  <a href="#" class="nav1">
+     <i class="fi fi-rr-chart-histogram"></i>
+    <span>Usage Stats</span>
+  </a>
+  <a href="#" class="nav1 active">
+    <i class="fi fi-rr-cloud-sun"></i>
+    <span>Weather</span>
+  </a>
+  <a href="#" class="nav1">
+   <i class="fi fi-rr-settings"></i>
+    <span>Settings</span>
+  </a>
+
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="user-info">
+
+      </div>
+    </div>
+    <a href="#" class="nav1" style="margin-top:4px;">
+      <span class="nav-icon">🚪</span>
+      <span>Log out</span>
+    </a>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-title">Weather Monitor</div>
+    <div class="header-actions">
+      <button class="icon-btn" title="Refresh">🔄</button>
+      <button class="icon-btn" title="Notifications">🔔</button>
+    </div>
+  </div>
+
+  <!-- Hero Blue Card -->
+  <div class="hero-card">
+    <div class="hero-top">
+      <div>
+        <div class="hero-date">Saturday, March 11 · 2:45 PM</div>
+        <div class="hero-location">📍 Manolo Fortich, Bukidnon</div>
+      </div>
+    </div>
+    <div class="hero-temp-row">
+      <div>
+        <div class="big-temp">18<sup>°</sup></div>
+        <div class="weather-desc">☁️ Partly Cloudy</div>
+      </div>
+    </div>
+    <span class="hero-cloud-icon">⛅</span>
+    <div class="hero-stats">
+      <div class="stat-pill"><span>💨</span><span class="val">72%</span><span>Humidity</span></div>
+      <div class="stat-pill"><span>🌬️</span><span class="val">12 km/h</span><span>Wind</span></div>
+      <div class="stat-pill"><span>👁️</span><span class="val">10 km</span><span>Visibility</span></div>
+      <div class="stat-pill"><span>🌡️</span><span class="val">1013</span><span>hPa</span></div>
+    </div>
+  </div>
+
+  <!-- Alert Banner -->
+  <div class="alert-card">
+    <div class="alert-icon">⚠️</div>
+    <div>
+      <div class="alert-title">Heat Risk Warning — March 11 – 13</div>
+      <div class="alert-desc">Temperatures may reach 32°C over the next 3 days. Stay hydrated and limit outdoor exposure between 11 AM – 3 PM. Irrigation recommended for crops in low-altitude areas.</div>
+    </div>
+  </div>
+
+  <!-- 7-Day Forecast -->
+  <div>
+    <div class="section-label">7-Day Forecast</div>
+    <div class="forecast-row">
+      <div class="forecast-item today">
+        <div class="day">Today</div>
+        <div class="forecast-icon">⛅</div>
+        <div class="forecast-temp">18°</div>
+        <div class="forecast-hi-lo"><span class="forecast-hi">22°</span><span class="forecast-lo">15°</span></div>
+      </div>
+      <div class="forecast-item">
+        <div class="day">Sat</div>
+        <div class="forecast-icon">🌧️</div>
+        <div class="forecast-temp">17°</div>
+        <div class="forecast-hi-lo"><span class="forecast-hi">20°</span><span class="forecast-lo">14°</span></div>
+      </div>
+      <div class="forecast-item">
+        <div class="day">Sun</div>
+        <div class="forecast-icon">🌦️</div>
+        <div class="forecast-temp">19°</div>
+        <div class="forecast-hi-lo"><span class="forecast-hi">23°</span><span class="forecast-lo">16°</span></div>
+      </div>
+      <div class="forecast-item">
+        <div class="day">Mon</div>
+        <div class="forecast-icon">☀️</div>
+        <div class="forecast-temp">22°</div>
+        <div class="forecast-hi-lo"><span class="forecast-hi">27°</span><span class="forecast-lo">17°</span></div>
+      </div>
+      <div class="forecast-item">
+        <div class="day">Tue</div>
+        <div class="forecast-icon">⛅</div>
+        <div class="forecast-temp">21°</div>
+        <div class="forecast-hi-lo"><span class="forecast-hi">25°</span><span class="forecast-lo">16°</span></div>
+      </div>
+      <div class="forecast-item">
+        <div class="day">Wed</div>
+        <div class="forecast-icon">🌩️</div>
+        <div class="forecast-temp">16°</div>
+        <div class="forecast-hi-lo"><span class="forecast-hi">19°</span><span class="forecast-lo">13°</span></div>
+      </div>
+      <div class="forecast-item">
+        <div class="day">Thu</div>
+        <div class="forecast-icon">🌤️</div>
+        <div class="forecast-temp">20°</div>
+        <div class="forecast-hi-lo"><span class="forecast-hi">24°</span><span class="forecast-lo">15°</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Grid -->
+  <div class="bottom-grid">
+
+    <!-- Rainfall Chart -->
+    <div class="card">
+      <div class="card-title">
+        Rainfall (Last 14 Days)
+        <span class="badge">mm</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="rainfallChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Inference Donut -->
+    <div class="card">
+      <div class="card-title">Inference Summary</div>
+      <div class="donut-wrap">
+        <div class="donut-canvas-wrap">
+          <canvas id="donutChart"></canvas>
+          <div class="donut-center">
+            <div class="donut-pct">84%</div>
+            <div class="donut-sub">Overall</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#2563eb;"></div>
+            <div>
+              <div style="font-weight:600;color:#0f172a;">84%</div>
+              <div>Normal days</div>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#93c5fd;"></div>
+            <div>
+              <div style="font-weight:600;color:#0f172a;">11%</div>
+              <div>Rain days</div>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#f59e0b;"></div>
+            <div>
+              <div style="font-weight:600;color:#0f172a;">5%</div>
+              <div>Alert days</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  /* ── Rainfall Line Chart ── */
+  const rfCtx = document.getElementById('rainfallChart').getContext('2d');
+  const labels = ['Feb 26','27','28','Mar 1','2','3','4','5','6','7','8','9','10','Today'];
+  const data   = [8, 14, 5, 22, 18, 3, 7, 30, 25, 12, 4, 19, 28, 11];
+
+  const grad = rfCtx.createLinearGradient(0, 0, 0, 130);
+  grad.addColorStop(0, 'rgba(37,99,235,0.25)');
+  grad.addColorStop(1, 'rgba(37,99,235,0)');
+
+  new Chart(rfCtx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: '#2563eb',
+        borderWidth: 2.5,
+        backgroundColor: grad,
+        fill: true,
+        tension: 0.45,
+        pointRadius: 3,
+        pointBackgroundColor: '#2563eb',
+        pointHoverRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#0f172a',
+        titleFont: { size: 11 },
+        bodyFont: { size: 12, weight: '700' },
+        callbacks: { label: ctx => ` ${ctx.parsed.y} mm` }
+      }},
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#94a3b8', maxTicksLimit: 7 } },
+        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 }, color: '#94a3b8' }, beginAtZero: true }
+      }
+    }
+  });
+
+  /* ── Donut Chart ── */
+  const doCtx = document.getElementById('donutChart').getContext('2d');
+  new Chart(doCtx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [84, 11, 5],
+        backgroundColor: ['#2563eb', '#93c5fd', '#f59e0b'],
+        borderWidth: 0,
+        hoverOffset: 4,
+      }]
+    },
+    options: {
+      cutout: '72%',
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => ` ${ctx.parsed}%` }
+      }},
+    }
+  });
+</script>
+</body>
 
 <head>
     <meta charset="UTF-8">
