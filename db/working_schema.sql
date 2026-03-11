@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     id                        INT AUTO_INCREMENT PRIMARY KEY,
     email                     VARCHAR(255) UNIQUE NOT NULL,
     password                  VARCHAR(255)        NOT NULL,
-    role                      ENUM('admin','manager','user') DEFAULT 'user',
+    role                      ENUM('admin','user') DEFAULT 'user',
     is_verified               TINYINT(1)          DEFAULT 0,
     verification_token        VARCHAR(64)         NULL,
     email_verification_expires DATETIME           NULL,
