@@ -466,7 +466,7 @@ body {
   <header class="topbar">
     <div class="topbar-left">
       <div class="page-title">Settings</div>
-      <div class="page-sub">Configure your EcoRain system</div>
+      <div class="page-sub">Configure your EcoRain System</div>
     </div>
     <div class="topbar-right">
       <div class="t-search">
