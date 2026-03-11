@@ -9,7 +9,7 @@ if (isLoggedIn()) {
             redirect('/App/Dashboard/dashboard.php');
             break;
         case 'user':
-            redirect('/App/User/user.php');
+            redirect('/App/User/dashboard.php');
             break;
     }
 }
@@ -28,15 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['email']   = $user['email'];
         $_SESSION['role']    = $user['role'];
-
         logActivity($pdo, $user['id'], $user['email'], 'login', 'success');
-
         switch ($user['role']) {
             case 'admin':
                 redirect('/App/Dashboard/dashboard.php');
                 break;
             case 'user':
-                redirect('/App/User/user.php');
+                redirect('/App/User/dashboard.php');
                 break;
         }
     } else {
@@ -44,8 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         logActivity($pdo, null, $email, 'login', 'failed');
     }
 }
-
-renderHeader('EcoRain — Sign In');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -54,87 +50,123 @@ renderHeader('EcoRain — Sign In');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoRain — Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        * {
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f8fafc;
+            font-family: 'Inter', sans-serif;
+           
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            line-height: 1.6;
-            color: #334155;
+            padding: 1.25rem;
         }
 
-        .login-container {
+        .login-outer {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
         }
 
+        /* LOGO */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(145deg, #60a5fa, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .brand-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #000000;
+            letter-spacing: -.02em;
+        }
+
+        /* CARD */
         .login-card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            padding: 2rem 2.25rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
         }
 
         .login-header {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 1.75rem;
         }
 
         .login-header h2 {
-            font-size: 1.875rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
             font-weight: 700;
             color: #1e293b;
-            margin-bottom: 8px;
+            margin-bottom: .35rem;
         }
 
         .login-header p {
             color: #64748b;
-            font-size: 0.875rem;
+            font-size: .875rem;
         }
 
+        /* SERVER ERROR */
         .server-error {
             background: #fef2f2;
             color: #dc2626;
             border: 1px solid #fecaca;
             border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 0.875rem;
+            padding: .75rem 1rem;
+            font-size: .875rem;
             font-weight: 500;
-            margin-bottom: 20px;
-            animation: fadeUp 0.25s ease;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
         }
 
+        /* FORM */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.1rem;
         }
 
         .input-wrapper {
             position: relative;
-            display: flex;
-            flex-direction: column;
         }
 
         .input-wrapper input {
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 18px 16px 8px 16px;
-            color: #1e293b;
-            font-size: 16px;
-            transition: all 0.2s ease;
             width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 9px;
+            padding: 1.1rem 1rem .5rem 1rem;
+            color: #1e293b;
+            font-size: .9rem;
+            font-family: 'Inter', sans-serif;
             outline: none;
+            transition: border-color .2s, box-shadow .2s;
         }
 
         .input-wrapper input::placeholder {
@@ -143,180 +175,103 @@ renderHeader('EcoRain — Sign In');
 
         .input-wrapper label {
             position: absolute;
-            left: 16px;
-            top: 14px;
-            color: #64748b;
-            font-size: 16px;
-            transition: all 0.2s ease;
+            left: 1rem;
+            top: .9rem;
+            color: #94a3b8;
+            font-size: .875rem;
+            transition: all .2s ease;
             pointer-events: none;
             transform-origin: left top;
         }
 
         .input-wrapper input:focus,
         .input-wrapper input:not(:placeholder-shown) {
-            border-color: #6366f1;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
+            background: #fff;
         }
 
         .input-wrapper input:focus+label,
         .input-wrapper input:not(:placeholder-shown)+label {
-            transform: translateY(-8px) scale(0.75);
-            color: #6366f1;
-            font-weight: 500;
+            transform: translateY(-8px) scale(.76);
+            color: #3b82f6;
+            font-weight: 600;
         }
 
-        .form-group.error .input-wrapper input {
+        .form-group.has-error .input-wrapper input {
             border-color: #ef4444;
         }
 
-        .form-group.error .input-wrapper input+label {
+        .form-group.has-error .input-wrapper input:focus+label,
+        .form-group.has-error .input-wrapper input:not(:placeholder-shown)+label {
             color: #ef4444;
         }
 
-        .password-wrapper {
-            position: relative;
-        }
-
         .password-wrapper input {
-            padding-right: 48px;
+            padding-right: 3rem;
         }
 
-        .password-toggle {
+        .eye-toggle {
             position: absolute;
-            right: 12px;
+            right: .85rem;
             top: 50%;
             transform: translateY(-50%);
             background: none;
             border: none;
             cursor: pointer;
-            padding: 8px;
-            color: #64748b;
-            transition: color 0.2s ease;
+            padding: .3rem;
+            color: #94a3b8;
+            transition: color .2s;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .password-toggle:hover {
+        .eye-toggle:hover {
             color: #1e293b;
         }
 
-        .eye-icon {
-            display: block;
-            width: 20px;
-            height: 20px;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='1.5'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'/%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'/%3e%3c/svg%3e");
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            transition: background-image 0.2s ease;
+        .eye-toggle svg {
+            width: 18px;
+            height: 18px;
         }
 
-        .eye-icon.show-password {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='1.5'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.242 4.242L9.88 9.88'/%3e%3c/svg%3e");
-        }
-
-        .error-message {
-            display: block;
+        .field-error {
+            font-size: .73rem;
             color: #ef4444;
-            font-size: 0.75rem;
             font-weight: 500;
-            margin-top: 4px;
-            margin-left: 4px;
+            margin-top: .3rem;
+            min-height: 16px;
+            display: block;
             opacity: 0;
             transform: translateY(-4px);
-            transition: all 0.2s ease;
-            min-height: 16px;
+            transition: all .2s ease;
         }
 
-        .error-message.show {
+        .field-error.show {
             opacity: 1;
             transform: translateY(0);
         }
 
-        .form-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .remember-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-
-        .remember-wrapper input[type="checkbox"] {
-            display: none;
-        }
-
-        .checkbox-label {
-            color: #64748b;
-            font-size: 0.875rem;
-            cursor: pointer;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .checkmark {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #d1d5db;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-            background: white;
-        }
-
-        .remember-wrapper input[type="checkbox"]:checked~.checkbox-label .checkmark {
-            background: #6366f1;
-            border-color: #6366f1;
-        }
-
-        .remember-wrapper input[type="checkbox"]:checked~.checkbox-label .checkmark::after {
-            content: '✓';
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .forgot-password {
-            color: #6366f1;
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .forgot-password:hover {
-            color: #4f46e5;
-        }
-
+        /* SUBMIT */
         .login-btn {
             width: 100%;
-            background: #6366f1;
+            background: #2563eb;
+            color: #fff;
             border: none;
-            border-radius: 8px;
-            padding: 14px 24px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 9px;
+            padding: .9rem 1.5rem;
+            font-size: .95rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background .2s, transform .1s;
             position: relative;
-            margin-bottom: 24px;
+            margin-bottom: .5rem;
         }
 
         .login-btn:hover:not(:disabled) {
-            background: #4f46e5;
+            background: #1d4ed8;
         }
 
         .login-btn:active:not(:disabled) {
@@ -324,12 +279,12 @@ renderHeader('EcoRain — Sign In');
         }
 
         .login-btn:disabled {
+            background: #93c5fd;
             pointer-events: none;
-            background: #a5a6f6;
         }
 
         .btn-text {
-            transition: opacity 0.2s ease;
+            transition: opacity .2s;
         }
 
         .btn-loader {
@@ -340,11 +295,11 @@ renderHeader('EcoRain — Sign In');
             width: 18px;
             height: 18px;
             border: 2px solid transparent;
-            border-top: 2px solid white;
+            border-top-color: #fff;
             border-radius: 50%;
             opacity: 0;
-            animation: spin 0.8s linear infinite;
-            transition: opacity 0.2s ease;
+            animation: spin .8s linear infinite;
+            transition: opacity .2s;
         }
 
         .login-btn.loading .btn-text {
@@ -355,61 +310,34 @@ renderHeader('EcoRain — Sign In');
             opacity: 1;
         }
 
-        .login-btn.loading {
-            pointer-events: none;
-            background: #a5a6f6;
-        }
-
-        .signup-link {
-            text-align: center;
-        }
-
-        .signup-link p {
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-
-        .signup-link a {
-            color: #6366f1;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .signup-link a:hover {
-            color: #4f46e5;
-        }
-
         @keyframes spin {
             to {
                 transform: translate(-50%, -50%) rotate(360deg);
             }
         }
 
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* FOOTER NOTE */
+        .card-footer-note {
+            text-align: center;
+            font-size: .78rem;
+            color: #94a3b8;
+            margin-top: .5rem;
         }
 
+        /* RESPONSIVE */
         @media (max-width: 480px) {
             .login-card {
-                padding: 24px;
+                padding: 1.5rem 1.25rem;
             }
 
             .login-header h2 {
-                font-size: 1.5rem;
+                font-size: 1.3rem;
             }
+        }
 
-            .form-options {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
+        @media (max-width: 360px) {
+            body {
+                padding: .75rem;
             }
         }
     </style>
@@ -417,148 +345,139 @@ renderHeader('EcoRain — Sign In');
 
 <body>
 
-    <div class="login-container">
+    <div class="login-outer">
+
+        <div class="brand">
+            <div class="brand-icon">💧</div>
+            <span class="brand-name">EcoRain</span>
+        </div>
+
         <div class="login-card">
 
             <div class="login-header">
-                <h2>Sign In</h2>
-                <p>Enter your credentials to access your account</p>
+                <h2>Welcome back</h2>
+                <p>Sign in to your EcoRain account</p>
             </div>
 
             <?php if ($error): ?>
-                <div class="server-error"><?php echo htmlspecialchars($error); ?></div>
+                <div class="server-error">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <?php echo htmlspecialchars($error); ?>
+                </div>
             <?php endif; ?>
 
-            <form method="POST" class="login-form" id="loginForm" novalidate>
+            <form method="POST" id="loginForm" novalidate>
 
                 <div class="form-group" id="emailGroup">
                     <div class="input-wrapper">
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            placeholder=" "
-                            required
-                            autocomplete="email"
+                        <input type="email" id="email" name="email" placeholder=" " required autocomplete="email"
                             value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                         <label for="email">Email Address</label>
                     </div>
-                    <span class="error-message" id="emailError"></span>
+                    <span class="field-error" id="emailError"></span>
                 </div>
 
                 <div class="form-group" id="passwordGroup">
                     <div class="input-wrapper password-wrapper">
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder=" "
-                            required
-                            autocomplete="current-password">
+                        <input type="password" id="password" name="password" placeholder=" " required autocomplete="current-password">
                         <label for="password">Password</label>
-                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
-                            <span class="eye-icon" id="eyeIcon"></span>
+                        <button type="button" class="eye-toggle" id="eyeBtn" aria-label="Toggle password">
+                            <svg id="eyeIcon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
                         </button>
                     </div>
-                    <span class="error-message" id="passwordError"></span>
+                    <span class="field-error" id="passwordError"></span>
                 </div>
-
-                
 
                 <button type="submit" class="login-btn" id="loginBtn">
                     <span class="btn-text">Sign In</span>
                     <span class="btn-loader"></span>
                 </button>
 
+                <div class="card-footer-note">Rainwater harvesting management system</div>
+
             </form>
-
-           
-
         </div>
+
     </div>
 
     <script>
-        // Password toggle
-        document.getElementById('passwordToggle').addEventListener('click', function () {
-            const input = document.getElementById('password');
-            const icon  = document.getElementById('eyeIcon');
-            const visible = input.type === 'password';
-            input.type = visible ? 'text' : 'password';
-            icon.classList.toggle('show-password', visible);
+        const eyeBtn = document.getElementById('eyeBtn');
+        const pwdInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        eyeBtn.addEventListener('click', () => {
+            const show = pwdInput.type === 'password';
+            pwdInput.type = show ? 'text' : 'password';
+            eyeIcon.innerHTML = show ?
+                '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>' :
+                '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
         });
 
-        // Validation helpers
-        function showError(groupId, errorId, msg) {
-            document.getElementById(groupId).classList.add('error');
-            const el = document.getElementById(errorId);
+        function showErr(groupId, errId, msg) {
+            document.getElementById(groupId).classList.add('has-error');
+            const el = document.getElementById(errId);
             el.textContent = msg;
             el.classList.add('show');
         }
 
-        function clearError(groupId, errorId) {
-            document.getElementById(groupId).classList.remove('error');
-            const el = document.getElementById(errorId);
+        function clearErr(groupId, errId) {
+            document.getElementById(groupId).classList.remove('has-error');
+            const el = document.getElementById(errId);
             el.textContent = '';
             el.classList.remove('show');
         }
 
-        function isValidEmail(v) {
+        function isEmail(v) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         }
 
-        // Live validation
-        document.getElementById('email').addEventListener('input', function () {
-            if (this.value && !isValidEmail(this.value)) {
-                showError('emailGroup', 'emailError', 'Please enter a valid email address.');
-            } else {
-                clearError('emailGroup', 'emailError');
-            }
+        document.getElementById('email').addEventListener('input', function() {
+            if (this.value && !isEmail(this.value)) showErr('emailGroup', 'emailError', 'Please enter a valid email.');
+            else clearErr('emailGroup', 'emailError');
+        });
+        document.getElementById('password').addEventListener('input', function() {
+            if (this.value && this.value.length < 6) showErr('passwordGroup', 'passwordError', 'Password must be at least 6 characters.');
+            else clearErr('passwordGroup', 'passwordError');
         });
 
-        document.getElementById('password').addEventListener('input', function () {
-            if (this.value.length > 0 && this.value.length < 6) {
-                showError('passwordGroup', 'passwordError', 'Password must be at least 6 characters.');
-            } else {
-                clearError('passwordGroup', 'passwordError');
-            }
-        });
-
-        // Form submit
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
-            const email    = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            let valid = true;
-
-            clearError('emailGroup',    'emailError');
-            clearError('passwordGroup', 'passwordError');
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value.trim();
+            const pwd = document.getElementById('password').value;
+            let ok = true;
+            clearErr('emailGroup', 'emailError');
+            clearErr('passwordGroup', 'passwordError');
 
             if (!email) {
-                showError('emailGroup', 'emailError', 'Email address is required.');
-                valid = false;
-            } else if (!isValidEmail(email)) {
-                showError('emailGroup', 'emailError', 'Please enter a valid email address.');
-                valid = false;
+                showErr('emailGroup', 'emailError', 'Email is required.');
+                ok = false;
+            } else if (!isEmail(email)) {
+                showErr('emailGroup', 'emailError', 'Enter a valid email.');
+                ok = false;
+            }
+            if (!pwd) {
+                showErr('passwordGroup', 'passwordError', 'Password is required.');
+                ok = false;
+            } else if (pwd.length < 6) {
+                showErr('passwordGroup', 'passwordError', 'At least 6 characters.');
+                ok = false;
             }
 
-            if (!password) {
-                showError('passwordGroup', 'passwordError', 'Password is required.');
-                valid = false;
-            } else if (password.length < 6) {
-                showError('passwordGroup', 'passwordError', 'Password must be at least 6 characters.');
-                valid = false;
-            }
-
-            if (!valid) {
+            if (!ok) {
                 e.preventDefault();
                 return;
             }
-
             const btn = document.getElementById('loginBtn');
             btn.classList.add('loading');
             btn.disabled = true;
         });
     </script>
-
 </body>
+
 </html>
-<?php renderFooter(); ?>
