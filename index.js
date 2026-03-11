@@ -13,7 +13,7 @@ function createWindow() {
         }
     });
 
-    mainWindow.loadFile('index.html');
+    mainWindow.loadFile('./Dashboard/index.html');
 
 
     mainWindow.webContents.openDevTools();
