@@ -7,6 +7,7 @@ USE automated_rainwater;
 
 CREATE TABLE IF NOT EXISTS users (
     id                        INT AUTO_INCREMENT PRIMARY KEY,
+    username varchar(255) not null,
     email                     VARCHAR(255) UNIQUE NOT NULL,
     password                  VARCHAR(255)        NOT NULL,
     role                      ENUM('admin','user') DEFAULT 'user',
@@ -20,7 +21,8 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS user_activity_logs (
     activity_id  INT AUTO_INCREMENT PRIMARY KEY,
-    user_id      INT          NULL,                     
+    user_id      INT          NULL,
+    role                      ENUM('admin','user') DEFAULT 'user',   
     email        VARCHAR(255) NULL,
     action       VARCHAR(50)  NOT NULL,
     status       ENUM('success','failed') NOT NULL DEFAULT 'success',

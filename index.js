@@ -13,7 +13,7 @@ function createWindow() {
         }
     });
 
-    mainWindow.loadFile('./Dashboard/index.html');
+    mainWindow.loadFile('login.php');
 
 
     mainWindow.webContents.openDevTools();
