@@ -14,7 +14,7 @@ function createWindow() {
     });
 
     mainWindow.loadFile('login.php');
-
+mainWindow.loadURL('http://localhost/Automated-RainWater-Harvest/login.php');
 
     mainWindow.webContents.openDevTools();
     mainWindow.setMenuBarVisibility(false)
