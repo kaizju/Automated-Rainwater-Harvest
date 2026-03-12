@@ -1,7 +1,4 @@
 <?php
-/**
- * Simple Activity Logger
- */
 
 function logActivity($pdo, $user_id, $email, $action, $status = 'success') {
     try {
