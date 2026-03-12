@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     username varchar(255) not null,
     email                     VARCHAR(255) UNIQUE NOT NULL,
     password                  VARCHAR(255)        NOT NULL,
-    role                      ENUM('admin','user') DEFAULT 'user',
+    role                      ENUM('admin','manager','user') DEFAULT 'user',
     is_verified               TINYINT(1)          DEFAULT 0,
     verification_token        VARCHAR(64)         NULL,
     email_verification_expires DATETIME           NULL,
