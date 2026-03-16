@@ -29,6 +29,6 @@ if (ini_get('session.use_cookies')) {
 session_destroy();
 
 
-die(header('Location: /Automated-RainWater-Harvest/login.php'));
+die(header('Location: /Automated-RainWater-Harvest/index.php'));
 exit;
 ?>
