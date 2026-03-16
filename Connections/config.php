@@ -1,6 +1,6 @@
 <?php
 session_start();
-define('BASE_URL', 'http://localhost/Automated-RainWater-Harvest');
+define('BASE_URL', 'https://ics-dev.io/sag-ob/');
 
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'u442411629_sagob');
