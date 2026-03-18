@@ -1,6 +1,7 @@
 <?php
 require_once '../../Connections/config.php';
 
+
 if (session_status() === PHP_SESSION_NONE) session_start();
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     header('Location: ../../index.php');
@@ -85,6 +86,7 @@ $pct     = $maxCap > 0 ? round($threshV / $maxCap * 100) : 20;
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>EcoRain — Settings</title>
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/all.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet"/>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

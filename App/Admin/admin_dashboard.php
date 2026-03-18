@@ -1,6 +1,7 @@
 <?php
 require_once '../../Connections/config.php';
 
+
 // Tank
 $tank    = $pdo->query("SELECT * FROM tank LIMIT 1")->fetch(PDO::FETCH_ASSOC);
 $percent = 0;
@@ -88,6 +89,7 @@ $initials = 'AD';
   <title>EcoRain — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/all.css">
   <style>
     *,
     *::before,
