@@ -6,7 +6,10 @@ require_once __DIR__ . '/Others/activity_logger.php';
 if (isLoggedIn()) {
     switch ($_SESSION['role']) {
         case 'admin':
-            redirect('/App/Dashboard/dashboard.php');
+            redirect('/App/Admin/admin.php');
+            break;
+        case 'manager':
+            redirect('/App/Dashboard/manager.php');
             break;
         case 'user':
             redirect('/App/User/dashboard.php');
@@ -17,7 +20,7 @@ if (isLoggedIn()) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email']    ?? '');
+    $email = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
     $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND is_verified = 1");
@@ -26,12 +29,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($user && password_verify($password, $user['password'])) {
         $_SESSION['user_id'] = $user['id'];
-        $_SESSION['email']   = $user['email'];
-        $_SESSION['role']    = $user['role'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['role'] = $user['role'];
         logActivity($pdo, $user['id'], $user['email'], 'login', 'success');
         switch ($user['role']) {
             case 'admin':
-                redirect('/App/Dashboard/dashboard.php');
+                redirect('/App/Admin/admin.php');
+                break;
+            case 'manager':
+                redirect('/App/Dashboard/manager.php');
                 break;
             case 'user':
                 redirect('/App/User/dashboard.php');
@@ -50,7 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoRain — Sign In</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap"
+        rel="stylesheet">
     <style>
         *,
         *::before,
@@ -62,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         body {
             font-family: 'Inter', sans-serif;
-           
+
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -383,7 +391,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="form-group" id="passwordGroup">
                     <div class="input-wrapper password-wrapper">
-                        <input type="password" id="password" name="password" placeholder=" " required autocomplete="current-password">
+                        <input type="password" id="password" name="password" placeholder=" " required
+                            autocomplete="current-password">
                         <label for="password">Password</label>
                         <button type="button" class="eye-toggle" id="eyeBtn" aria-label="Toggle password">
                             <svg id="eyeIcon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -438,16 +447,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         }
 
-        document.getElementById('email').addEventListener('input', function() {
+        document.getElementById('email').addEventListener('input', function () {
             if (this.value && !isEmail(this.value)) showErr('emailGroup', 'emailError', 'Please enter a valid email.');
             else clearErr('emailGroup', 'emailError');
         });
-        document.getElementById('password').addEventListener('input', function() {
+        document.getElementById('password').addEventListener('input', function () {
             if (this.value && this.value.length < 6) showErr('passwordGroup', 'passwordError', 'Password must be at least 6 characters.');
             else clearErr('passwordGroup', 'passwordError');
         });
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
             const email = document.getElementById('email').value.trim();
             const pwd = document.getElementById('password').value;
             let ok = true;

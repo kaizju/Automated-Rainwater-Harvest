@@ -6,7 +6,7 @@ INSERT INTO users (username,email, password, role, is_verified) VALUES
 -- Step 5: Activity log (now user_id 1 and 2 exist)
 INSERT INTO user_activity_logs (user_id,role, email, action, status) VALUES
     (1,'Admin', 'admin@example.com', 'register', 'success'),
-    (2,'Admin', 'manager@example.com', 'register', 'success'),
+    (2,'Manager', 'manager@example.com', 'register', 'success'),
     (3,'User', 'user@example.com',  'register', 'success');
 
 -- Step 6: Tank

@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS user_activity_logs (
     activity_id  INT AUTO_INCREMENT PRIMARY KEY,
     user_id      INT          NULL,
-    role                      ENUM('admin','user') DEFAULT 'user',   
+    role                      ENUM('admin','manager','user') DEFAULT 'user',   
     email        VARCHAR(255) NULL,
     action       VARCHAR(50)  NOT NULL,
     status       ENUM('success','failed') NOT NULL DEFAULT 'success',

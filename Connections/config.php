@@ -1,11 +1,11 @@
 <?php
 session_start();
-define('BASE_URL', 'https://ics-dev.io/sag-ob/');
+define('BASE_URL', 'http://localhost/Automated-RainWater-Harvest');
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'u442411629_sagob');
-define('DB_USER', 'u442411629_dev_sagob');
-define('DB_PASS', 'Q9-6:{e8=],R');
+define('DB_NAME', 'automated_rainwater');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 
 try {
     $pdo = new PDO(
