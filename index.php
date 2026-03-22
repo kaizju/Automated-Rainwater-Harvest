@@ -6,10 +6,10 @@ require_once __DIR__ . '/Others/activity_logger.php';
 if (isLoggedIn()) {
     switch ($_SESSION['role']) {
         case 'admin':
-            redirect('/App/Admin/admin.php');
+            redirect('/App/Admin/admin_oversight.php');
             break;
         case 'manager':
-            redirect('/App/Dashboard/manager.php');
+            redirect('/App/Manager/manager.php');
             break;
         case 'user':
             redirect('/App/User/dashboard.php');
@@ -34,10 +34,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         logActivity($pdo, $user['id'], $user['email'], 'login', 'success');
         switch ($user['role']) {
             case 'admin':
-                redirect('/App/Admin/admin.php');
+                redirect('/App/Admin/admin_oversight.php');
                 break;
             case 'manager':
-                redirect('/App/Dashboard/manager.php');
+                redirect('/App/Manager/manager.php');
                 break;
             case 'user':
                 redirect('/App/User/dashboard.php');

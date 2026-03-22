@@ -76,12 +76,18 @@ $failed_logs = $failed_stmt->fetchColumn();
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+        /* ── KEY FIX: html and body must allow scrolling ── */
+        html {
+            height: 100%;
+            overflow-y: scroll;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background: #f1f5f9;
             color: #1e293b;
-            min-height: 100vh;
-            padding: 0;
+            min-height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         /* TOP NAV BAR */
@@ -95,6 +101,7 @@ $failed_logs = $failed_stmt->fetchColumn();
             position: sticky;
             top: 0;
             z-index: 50;
+            flex-shrink: 0;
         }
         .top-nav-logo { display: flex; align-items: center; gap: .6rem; text-decoration: none; }
         .logo-drop { width: 32px; height: 32px; background: linear-gradient(160deg,#60a5fa,#2563eb); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
@@ -110,7 +117,7 @@ $failed_logs = $failed_stmt->fetchColumn();
         .page-wrap {
             max-width: 900px;
             margin: 2rem auto;
-            padding: 0 1.25rem 3rem;
+            padding: 0 1.25rem 4rem;
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
@@ -222,6 +229,10 @@ $failed_logs = $failed_stmt->fetchColumn();
         <a href="<?php echo BASE_URL; ?>/App/User/weather.php" class="top-nav-link hide-mobile">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
             Weather
+        </a>
+        <a href="<?php echo BASE_URL; ?>/App/User/map.php" class="top-nav-link hide-mobile">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Tank Map
         </a>
         <a href="<?php echo BASE_URL; ?>/Connections/signout.php" class="top-nav-link logout-link">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
@@ -374,5 +385,4 @@ $failed_logs = $failed_stmt->fetchColumn();
 
 </div>
 </body>
-<link rel="stylesheet" href="/Others/all.css">
 </html>

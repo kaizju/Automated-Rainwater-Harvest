@@ -910,6 +910,13 @@ $rfDataJson   = json_encode($rfData);
     Weather
   </a>
  
+  <a href="<?php echo BASE_URL; ?>/App/Admin/admin_map.php" class="nav-item">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      Tank Map
+    </a>
   <div class="nav-section-label">Management</div>
  
   <a href="<?= BASE_URL ?>/App/Admin/admin_userlogs.php"

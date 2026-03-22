@@ -974,7 +974,7 @@ $roleChartJson = json_encode(array_values($roleCounts));
             </svg>
             Dashboard
         </a>
-        <a href="<?= BASE_URL ?>/App/Admin/admin.php" class="nav-item active">
+        <a href="<?= BASE_URL ?>/App/Admin/admin_oversight.php" class="nav-item active">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                 <circle cx="12" cy="12" r="3" />
@@ -993,6 +993,13 @@ $roleChartJson = json_encode(array_values($roleCounts));
             </svg>
             Weather
         </a>
+        <a href="<?php echo BASE_URL; ?>/App/Admin/admin_map.php" class="nav-item">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      Tank Map
+    </a>
 
          <div class="nav-section-label">Management</div>
         
