@@ -968,7 +968,7 @@ $rfDataJson   = json_encode($rfData);
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
         <span class="notif-dot"></span>
       </div>
-       <a href="<?php echo BASE_URL;?>/App/Users/user.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
+       <a href="<?php echo BASE_URL;?>/App/Admin/admin_userlogs.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
     </div>
   </header>
 

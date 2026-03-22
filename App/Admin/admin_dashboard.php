@@ -401,7 +401,7 @@ $initials = 'AD';
           </svg>
           <span class="notif-dot"></span>
         </div>
-        <a href="<?php echo BASE_URL; ?>/App/Users/user.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
+        <a href="<?php echo BASE_URL; ?>/App/Admin/admin_userlogs.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
       </div>
     </header>
 
