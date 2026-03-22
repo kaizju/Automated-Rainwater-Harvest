@@ -13,6 +13,12 @@ INSERT INTO user_activity_logs (user_id,role, email, action, status) VALUES
 INSERT INTO tank (tankname, location_add, current_liters, max_capacity, status_tank)
 VALUES ('Tank 1', 'Jude Crib', 1200, 5000, 'Active');
 
+INSERT INTO tank (tankname, location_add, current_liters, max_capacity, status_tank)
+VALUES ('Tank 2', 'Kert Crib', 3000, 5000, 'Active');
+
+INSERT INTO tank (tankname, location_add, current_liters, max_capacity, status_tank)
+VALUES ('Tank 3', 'Ading Crib', 1500, 5000, 'Active');
+
 -- Step 7: Sensor (tank_id = 1 now exists)
 INSERT INTO sensors (tank_id, sensor_type, model, unit, is_active)
 VALUES (1, 'Water Level', 'Model 1', 'L', 'Active');

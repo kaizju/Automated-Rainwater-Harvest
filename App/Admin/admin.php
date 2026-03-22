@@ -180,7 +180,7 @@ $roleChartJson = json_encode(array_values($roleCounts));
         href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/Others/all.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/all.css">
     <style>
         *,
         *::before,
@@ -963,7 +963,7 @@ $roleChartJson = json_encode(array_values($roleCounts));
             <span class="logo-text">EcoRain</span>
         </div>
 
-        
+        <div class="nav-section-label">Overview</div>
         <a href="<?= BASE_URL ?>/App/Admin/admin_dashboard.php" class="nav-item">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -993,6 +993,7 @@ $roleChartJson = json_encode(array_values($roleCounts));
             Weather
         </a>
 
+         <div class="nav-section-label">Management</div>
         
         <a href="<?= BASE_URL ?>/App/Admin/admin_userlogs.php" class="nav-item">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
