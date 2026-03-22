@@ -91,6 +91,7 @@ $rfDataJson   = json_encode($rfData);
 <link rel="stylesheet" href="/Others/all.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/map.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: #e5e7eb; color: #111827; font-size: 14px; display: flex; min-height: 100vh; overflow-x: hidden; }
@@ -220,19 +221,26 @@ $rfDataJson   = json_encode($rfData);
     <span class="logo-name">EcoRain</span>
   </div>
   <nav class="nav-section">
-    <a href="<?php echo BASE_URL;?>/App/Dashboard/dashboard.php" class="nav-link">
+    <a href="<?php echo BASE_URL;?>/App/Manager/manager.php" class="nav-link">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
     </a>
-    <a href="<?php echo BASE_URL;?>/App/usage/usage.php" class="nav-link">
+    <a href="<?php echo BASE_URL;?>/App/Manager/usage.php" class="nav-link">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Usage Stats
     </a>
-    <a href="<?php echo BASE_URL;?>/App/weather/weather.php" class="nav-link active">
+    <a href="<?php echo BASE_URL;?>/App/Manager/weather.php" class="nav-link active">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
       Weather
     </a>
-    <a href="<?php echo BASE_URL;?>/App/settings/settings.php" class="nav-link">
+    <a href="<?php echo BASE_URL; ?>/App/Manager/map.php" class="nav-item">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      Tank Map
+    </a>
+    <a href="<?php echo BASE_URL; ?>/App/Manager/settings.php" class="nav-link">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
       Settings
     </a>

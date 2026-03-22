@@ -1,11 +1,8 @@
 <?php
 require_once '../../Connections/config.php';
 
-// FIX: $activePage was referenced in sidebar but never defined
-$activePage = 'dashboard';
-
-// ── All Tanks (aggregate) ──────────────────────────────────────────────────
-// FIX: was LIMIT 1 (single tank) — now fetches all tanks like the manager dashboard
+// ── All Tanks (aggregate) ─────────────────────────────────────────────────
+// FIX: was $tanksAll in query but $allTanks everywhere else — unified to $allTanks
 $allTanks = $pdo->query("SELECT * FROM tank")->fetchAll(PDO::FETCH_ASSOC);
 
 $totalCurrentLiters = array_sum(array_column($allTanks, 'current_liters'));
@@ -13,6 +10,7 @@ $totalMaxCapacity   = array_sum(array_column($allTanks, 'max_capacity'));
 $tankCount          = count($allTanks);
 $onlineCount        = count(array_filter($allTanks, fn($t) => strtolower($t['status_tank']) === 'active'));
 
+// FIX: removed duplicate $percent calculation
 $percent = ($totalMaxCapacity > 0)
     ? round(($totalCurrentLiters / $totalMaxCapacity) * 100, 1)
     : 0;
@@ -22,7 +20,7 @@ $quality = $pdo->query(
   "SELECT * FROM water_quality ORDER BY recorded_at DESC LIMIT 1"
 )->fetch(PDO::FETCH_ASSOC);
 
-// ── Today collected ────────────────────────────────────────────────────────
+// ── Today collected (all tanks) ────────────────────────────────────────────
 $todayRow       = $pdo->query("SELECT COALESCE(SUM(usage_liters),0) AS t FROM water_usage WHERE DATE(recorded_at)=CURDATE()")->fetch(PDO::FETCH_ASSOC);
 $todayCollected = (float)$todayRow['t'];
 
@@ -64,6 +62,7 @@ function phColor($v)  { return ($v == 0 || ($v >= 6.5 && $v <= 8.5)) ? '#16a34a'
 function turbLabel($v){ return $v == 0 ? 'None' : ($v > 4 ? 'Poor' : ($v > 1 ? 'Moderate' : 'Excellent')); }
 function turbColor($v){ return ($v == 0 || $v <= 1) ? '#16a34a' : ($v <= 4 ? '#d97706' : '#ef4444'); }
 
+// Tank card color based on overall fill
 $tankBg     = $percent < 20
     ? 'linear-gradient(135deg,#fee2e2,#fca5a5)'
     : ($percent < 50
@@ -71,17 +70,17 @@ $tankBg     = $percent < 20
         : 'linear-gradient(135deg,#dbeafe,#93c5fd)');
 $tankAccent = $percent < 20 ? '#dc2626' : ($percent < 50 ? '#d97706' : '#2563eb');
 
-// FIX: abs() prevents negative seconds from clock skew; added days fallback
+// Water quality time-ago — use abs() to avoid negative values from clock skew
 $updatedAgo = 'N/A';
 if ($quality) {
   $diff = abs(time() - strtotime($quality['recorded_at']));
-  if ($diff < 60)    $updatedAgo = $diff . 's ago';
-  elseif ($diff < 3600)  $updatedAgo = floor($diff / 60) . 'm ago';
+  if ($diff < 60) $updatedAgo = $diff . 's ago';
+  elseif ($diff < 3600) $updatedAgo = floor($diff / 60) . 'm ago';
   elseif ($diff < 86400) $updatedAgo = floor($diff / 3600) . 'h ago';
-  else                   $updatedAgo = floor($diff / 86400) . 'd ago';
+  else $updatedAgo = floor($diff / 86400) . 'd ago';
 }
 
-$initials = 'AD';
+$initials = 'M';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,8 +90,6 @@ $initials = 'AD';
   <title>EcoRain — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- FIX: stylesheet moved inside <head> only — duplicate after </html> removed -->
-  <link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/all.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -139,19 +136,9 @@ $initials = 'AD';
     }
     .sidebar.open { transform: translateX(0) !important; }
 
-    .logo { display: flex; align-items: center; gap: .6rem; padding: .25rem .5rem .25rem .25rem; margin-bottom: 1.5rem; }
+    .logo { display: flex; align-items: center; gap: .6rem; padding: .25rem .5rem .25rem .25rem; margin-bottom: 2rem; }
     .logo-icon { width: 34px; height: 34px; background: linear-gradient(145deg,#60a5fa,#1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0; }
     .logo-text { font-family: 'Sora', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; letter-spacing: -.02em; }
-
-    /* FIX: .nav-section-label was used in HTML but never defined in CSS */
-    .nav-section-label {
-      font-size: .6rem;
-      font-weight: 700;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: #475569;
-      padding: .65rem .75rem .25rem;
-    }
 
     .nav-item { display: flex; align-items: center; gap: .7rem; padding: .6rem .75rem; border-radius: 9px; font-size: .875rem; font-weight: 500; color: #94a3b8; text-decoration: none; margin-bottom: .1rem; transition: background .15s, color .15s; }
     .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
@@ -201,6 +188,7 @@ $initials = 'AD';
     .tank-card { border-radius: var(--radius); padding: 1.4rem; min-height: 300px; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: var(--shadow); }
     .tank-header { display: flex; align-items: center; gap: .45rem; font-size: .8rem; font-weight: 600; color: #1e3a5f; margin-bottom: .5rem; opacity: .75; }
     .tank-header svg { width: 15px; height: 15px; }
+    .tank-count-badge { display: inline-flex; align-items: center; gap: .3rem; background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.6); border-radius: 7px; padding: .2rem .55rem; font-size: .7rem; font-weight: 600; color: #1e3a5f; margin-bottom: .85rem; width: fit-content; }
     .tank-percent-big { font-family: 'Sora', sans-serif; font-size: 4rem; font-weight: 800; color: #0f172a; line-height: 1; letter-spacing: -.04em; }
     .tank-liters-sub { font-size: .82rem; font-weight: 500; color: #374151; margin-top: .3rem; margin-bottom: auto; }
     .tank-footer { margin-top: 1.5rem; }
@@ -208,11 +196,6 @@ $initials = 'AD';
     .tank-bar-bg { background: rgba(255,255,255,.5); border-radius: 99px; height: 7px; overflow: hidden; margin-bottom: .65rem; }
     .tank-bar-fill { height: 100%; border-radius: 99px; transition: width .9s; }
     .tank-collected { display: inline-flex; align-items: center; gap: .3rem; background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.6); border-radius: 7px; padding: .28rem .6rem; font-size: .76rem; font-weight: 600; color: #1e3a5f; }
-    .tank-stats-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
-    .tank-stat-chip { display: inline-flex; align-items: center; gap: .3rem; background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.6); border-radius: 7px; padding: .22rem .55rem; font-size: .72rem; font-weight: 600; color: #1e3a5f; }
-    .chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-    .tank-view-map { display: inline-flex; align-items: center; gap: .3rem; font-size: .75rem; font-weight: 600; color: #1e3a5f; text-decoration: none; opacity: .7; }
-    .tank-view-map:hover { opacity: 1; }
 
     /* WATER QUALITY */
     .wq-top { display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; }
@@ -244,6 +227,13 @@ $initials = 'AD';
     .forecast-right { margin-left: auto; text-align: right; }
     .forecast-predicted { font-size: .875rem; font-weight: 700; color: var(--text); }
     .forecast-lbl { font-size: .68rem; color: var(--subtle); }
+
+    /* TANK CHIPS */
+    .tank-stats-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
+    .tank-stat-chip { display: inline-flex; align-items: center; gap: .3rem; background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.6); border-radius: 7px; padding: .22rem .55rem; font-size: .72rem; font-weight: 600; color: #1e3a5f; }
+    .chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .tank-view-map { display: inline-flex; align-items: center; gap: .3rem; font-size: .75rem; font-weight: 600; color: #1e3a5f; text-decoration: none; opacity: .7; }
+    .tank-view-map:hover { opacity: 1; }
 
     /* BOTTOM ROW */
     .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
@@ -290,10 +280,7 @@ $initials = 'AD';
       <span class="logo-text">EcoRain</span>
     </div>
 
-    <div class="nav-section-label">Overview</div>
-
-    <a href="<?= BASE_URL ?>/App/Admin/admin_dashboard.php"
-       class="nav-item <?= $activePage === 'dashboard' ? 'active' : '' ?>">
+    <a href="<?php echo BASE_URL; ?>/App/Manager/manager.php" class="nav-item active">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="7" height="7" rx="1"/>
         <rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -302,55 +289,26 @@ $initials = 'AD';
       </svg>
       Dashboard
     </a>
-
-    <a href="<?= BASE_URL ?>/App/Admin/admin_oversight.php"
-       class="nav-item <?= $activePage === 'oversight' ? 'active' : '' ?>">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-        <circle cx="12" cy="12" r="3"/>
-      </svg>
-      Admin Oversight
-    </a>
-
-    <a href="<?= BASE_URL ?>/App/Admin/admin_usage.php"
-       class="nav-item <?= $activePage === 'usage' ? 'active' : '' ?>">
+    <a href="<?php echo BASE_URL; ?>/App/Manager/usage.php" class="nav-item">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
       </svg>
       Usage Stats
     </a>
-
-    <a href="<?= BASE_URL ?>/App/Admin/admin_weather.php"
-       class="nav-item <?= $activePage === 'weather' ? 'active' : '' ?>">
+    <a href="<?php echo BASE_URL; ?>/App/Manager/weather.php" class="nav-item">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
       </svg>
       Weather
     </a>
-
-       <a href="<?php echo BASE_URL; ?>/App/Admin/admin_map.php" class="nav-item">
+    <a href="<?php echo BASE_URL; ?>/App/Manager/map.php" class="nav-item">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
         <circle cx="12" cy="10" r="3"/>
       </svg>
       Tank Map
     </a>
-
-    <div class="nav-section-label">Management</div>
-
-    <a href="<?= BASE_URL ?>/App/Admin/admin_userlogs.php"
-       class="nav-item <?= $activePage === 'users' ? 'active' : '' ?>">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
-        <path d="M16 3.13a4 4 0 010 7.75"/>
-      </svg>
-      Users &amp; Roles
-    </a>
-
-    <a href="<?= BASE_URL ?>/App/Admin/admin_settings.php"
-       class="nav-item <?= $activePage === 'settings' ? 'active' : '' ?>">
+    <a href="<?php echo BASE_URL; ?>/App/Manager/settings.php" class="nav-item">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
         <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
@@ -360,7 +318,7 @@ $initials = 'AD';
 
     <div class="sidebar-spacer"></div>
     <div class="sidebar-bottom">
-      <a href="<?= BASE_URL ?>/Connections/signout.php" class="nav-item logout">
+      <a href="<?php echo BASE_URL; ?>/Connections/signout.php" class="nav-item logout">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
         </svg>
@@ -421,7 +379,9 @@ $initials = 'AD';
           </div>
 
           <div class="tank-percent-big"><?= $percent ?>%</div>
-          <div class="tank-liters-sub">of <?= number_format($totalMaxCapacity) ?>L combined capacity</div>
+          <div class="tank-liters-sub">
+            of <?= number_format($totalMaxCapacity) ?>L combined capacity
+          </div>
 
           <?php if ($tankCount > 1): ?>
           <div class="tank-stats-row">
@@ -447,7 +407,7 @@ $initials = 'AD';
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
               <div class="tank-collected">💧 <?= number_format($todayCollected, 0) ?>L collected today</div>
-              <a href="<?= BASE_URL ?>/App/Admin/admin_map.php" class="tank-view-map">
+              <a href="<?php echo BASE_URL; ?>/App/Manager/map.php" class="tank-view-map">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px">
                   <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
                   <circle cx="12" cy="10" r="3"/>
@@ -558,7 +518,6 @@ $initials = 'AD';
                   <tr>
                     <th>User</th>
                     <th>Action</th>
-                    <!-- FIX: was "Date&Time" — missing space and unescaped ampersand -->
                     <th>Time</th>
                   </tr>
                 </thead>
@@ -578,7 +537,7 @@ $initials = 'AD';
           <?php endif; ?>
         </div>
 
-        <!-- Fleet Summary — matches manager dashboard image design -->
+        <!-- Fleet Summary -->
         <div class="card">
           <div class="card-label">Fleet Summary</div>
           <?php if (!empty($allTanks)): ?>
@@ -604,7 +563,7 @@ $initials = 'AD';
                   ?>
                   <tr>
                     <td style="font-weight:600;color:var(--text)"><?= htmlspecialchars($t['tankname']) ?></td>
-                    <td>
+                    <td style="color:var(--text)">
                       <div style="display:flex;align-items:center;gap:.5rem">
                         <div style="flex:1;height:5px;background:var(--border);border-radius:99px;overflow:hidden">
                           <div style="width:<?= $tPct ?>%;height:100%;background:<?= $tColor ?>;border-radius:99px"></div>
@@ -740,5 +699,6 @@ $initials = 'AD';
     loadForecast();
   </script>
 
+  <link rel="stylesheet" href="/Others/all.css">
 </body>
 </html>

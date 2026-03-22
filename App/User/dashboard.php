@@ -1,12 +1,16 @@
 <?php
 require_once '../../Connections/config.php';
 
-// Tank
-$tank    = $pdo->query("SELECT * FROM tank LIMIT 1")->fetch(PDO::FETCH_ASSOC);
-$percent = 0;
-if ($tank && $tank['max_capacity'] > 0) {
-    $percent = round(($tank['current_liters'] / $tank['max_capacity']) * 100, 1);
-}
+// ── All Tanks (aggregate) ─────────────────────────────────────────────────
+$tanksAll = $pdo->query("SELECT * FROM tank")->fetchAll(PDO::FETCH_ASSOC);
+
+$totalCurrentLiters = array_sum(array_column($tanksAll, 'current_liters'));
+$totalMaxCapacity   = array_sum(array_column($tanksAll, 'max_capacity'));
+$tankCount          = count($tanksAll);
+$percent            = ($totalMaxCapacity > 0)
+    ? round(($totalCurrentLiters / $totalMaxCapacity) * 100, 1)
+    : 0;
+$onlineCount        = count(array_filter($tanksAll, fn($t) => strtolower($t['status_tank']) === 'active'));
 
 // Water Quality
 $quality = $pdo->query(
@@ -65,7 +69,7 @@ if ($quality) {
     else $updatedAgo = floor($diff/3600) . 'h ago';
 }
 
-$initials = 'AD';
+$initials = 'U';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -76,6 +80,7 @@ $initials = 'AD';
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="<?= BASE_URL ?>/Others/all.css">
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/map.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -257,11 +262,27 @@ $initials = 'AD';
     margin-bottom: 1rem; opacity: .75;
   }
   .tank-header svg { width: 15px; height: 15px; }
+
   .tank-percent-big {
     font-family: 'Sora', sans-serif; font-size: 4rem; font-weight: 800;
     color: #0f172a; line-height: 1; letter-spacing: -.04em;
   }
   .tank-liters-sub { font-size: .82rem; font-weight: 500; color: #374151; margin-top: .3rem; margin-bottom: auto; }
+
+  /* ── Tank fleet mini-stats row ── */
+  .tank-stats-row {
+    display: flex; gap: .5rem; margin-top: .75rem; flex-wrap: wrap;
+  }
+  .tank-stat-chip {
+    display: inline-flex; align-items: center; gap: .3rem;
+    background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.6);
+    border-radius: 7px; padding: .22rem .55rem;
+    font-size: .73rem; font-weight: 600; color: #1e3a5f;
+  }
+  .tank-stat-chip .chip-dot {
+    width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+  }
+
   .tank-footer { margin-top: 1.5rem; }
   .tank-meta {
     font-size: .78rem; font-weight: 500; color: #374151;
@@ -278,6 +299,17 @@ $initials = 'AD';
     border-radius: 7px; padding: .28rem .6rem;
     font-size: .76rem; font-weight: 600; color: #1e3a5f;
   }
+
+  /* View map link */
+  .tank-map-link {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .73rem; font-weight: 600; color: #1e3a5f;
+    text-decoration: none; opacity: .7;
+    transition: opacity .15s;
+    margin-top: .5rem;
+  }
+  .tank-map-link:hover { opacity: 1; }
+  .tank-map-link svg { width: 12px; height: 12px; }
 
   /* WATER QUALITY */
   .wq-top { display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; }
@@ -342,7 +374,7 @@ $initials = 'AD';
   }
   .u-link { color: var(--accent); font-weight: 600; }
 
-  /* RESPONSIVE — tablet */
+  /* RESPONSIVE */
   @media (max-width: 1200px) {
     .top-row { grid-template-columns: 280px 1fr 1fr; }
   }
@@ -394,8 +426,13 @@ $initials = 'AD';
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
     Weather
   </a>
-  
-
+  <a href="<?php echo BASE_URL; ?>/App/User/map.php" class="nav-item">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+      <circle cx="12" cy="10" r="3"/>
+    </svg>
+    Tank Map
+  </a>
   <div class="sidebar-spacer"></div>
   <div class="sidebar-bottom">
     <a href="<?php echo BASE_URL; ?>/Connections/signout.php" class="nav-item logout">
@@ -436,23 +473,48 @@ $initials = 'AD';
     <!-- TOP ROW -->
     <div class="top-row">
 
-      <!-- Tank Card -->
+      <!-- ── Fleet Tank Level Card ────────────────────────────────────── -->
       <div class="tank-card" style="background:<?= $tankBg ?>">
         <div class="tank-header">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4l3 3"/></svg>
-          Main Tank Level
+          Total Tank Level — <?= $tankCount ?> Tank<?= $tankCount !== 1 ? 's' : '' ?>
         </div>
+
         <div class="tank-percent-big"><?= $percent ?>%</div>
-        <div class="tank-liters-sub">of <?= $tank ? number_format($tank['max_capacity']) : '5,000' ?>L capacity</div>
+        <div class="tank-liters-sub">
+          of <?= number_format($totalMaxCapacity) ?>L combined capacity
+        </div>
+
+        <!-- Per-tank chips -->
+        <?php if ($tankCount > 1): ?>
+        <div class="tank-stats-row">
+          <?php foreach ($tanksAll as $t):
+            $tPct    = $t['max_capacity'] > 0 ? round(($t['current_liters'] / $t['max_capacity']) * 100) : 0;
+            $tColor  = $tPct >= 50 ? '#2563eb' : ($tPct >= 20 ? '#d97706' : '#dc2626');
+          ?>
+          <span class="tank-stat-chip">
+            <span class="chip-dot" style="background:<?= $tColor ?>"></span>
+            <?= htmlspecialchars($t['tankname']) ?> <?= $tPct ?>%
+          </span>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
         <div class="tank-footer">
           <div class="tank-meta">
-            <span><?= $tank ? number_format($tank['current_liters']) : '0' ?>L current</span>
-            <span><?= $tank ? number_format($tank['max_capacity']) : '5,000' ?>L max</span>
+            <span><?= number_format($totalCurrentLiters) ?>L stored</span>
+            <span><?= number_format($totalMaxCapacity) ?>L max</span>
           </div>
           <div class="tank-bar-bg">
             <div class="tank-bar-fill" style="width:<?= $percent ?>%;background:<?= $tankAccent ?>"></div>
           </div>
-          <div class="tank-collected">💧 <?= number_format($todayCollected, 0) ?>L collected today</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;">
+            <div class="tank-collected">💧 <?= number_format($todayCollected, 0) ?>L collected today</div>
+            <a href="<?php echo BASE_URL; ?>/App/User/map.php" class="tank-map-link">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              View map
+            </a>
+          </div>
         </div>
       </div>
 
@@ -553,19 +615,43 @@ $initials = 'AD';
         <?php endif; ?>
       </div>
 
+      <!-- Fleet Summary replaces single-tank summary -->
       <div class="card">
-        <div class="card-label">Tank Summary</div>
-        <?php if ($tank): ?>
+        <div class="card-label">Fleet Summary</div>
+        <?php if ($tanksAll): ?>
         <table class="mini-table">
+          <thead>
+            <tr><th>Tank</th><th>Fill</th><th>Status</th></tr>
+          </thead>
           <tbody>
-            <tr><td style="color:var(--muted)">Tank Name</td><td style="text-align:right;font-weight:600"><?= htmlspecialchars($tank['tankname']) ?></td></tr>
-            <tr><td style="color:var(--muted)">Location</td><td style="text-align:right;font-weight:600;word-break:break-all"><?= htmlspecialchars($tank['location_add']) ?></td></tr>
-            <tr><td style="color:var(--muted)">Current Volume</td><td style="text-align:right;font-weight:600"><?= number_format($tank['current_liters']) ?>L</td></tr>
-            <tr><td style="color:var(--muted)">Max Capacity</td><td style="text-align:right;font-weight:600"><?= number_format($tank['max_capacity']) ?>L</td></tr>
-            <tr><td style="color:var(--muted)">Fill Level</td><td style="text-align:right;font-weight:600"><?= $percent ?>%</td></tr>
-            <tr><td style="color:var(--muted)">Status</td><td style="text-align:right"><span class="badge"><?= htmlspecialchars($tank['status_tank']) ?></span></td></tr>
+          <?php foreach ($tanksAll as $t):
+            $tPct = $t['max_capacity'] > 0 ? round(($t['current_liters'] / $t['max_capacity']) * 100) : 0;
+          ?>
+            <tr>
+              <td style="font-weight:600"><?= htmlspecialchars($t['tankname']) ?></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.45rem;">
+                  <div style="flex:1;height:5px;background:#f1f5f9;border-radius:99px;min-width:50px;">
+                    <div style="width:<?= $tPct ?>%;height:100%;border-radius:99px;background:<?= $tPct >= 50 ? '#3b82f6' : ($tPct >= 20 ? '#f59e0b' : '#ef4444') ?>"></div>
+                  </div>
+                  <span style="font-size:.75rem;font-weight:600;color:var(--text);min-width:30px"><?= $tPct ?>%</span>
+                </div>
+              </td>
+              <td style="text-align:right">
+                <span class="badge" style="
+                  background:<?= strtolower($t['status_tank']) === 'active' ? '#f0fdf4' : '#fef3c7' ?>;
+                  color:<?= strtolower($t['status_tank']) === 'active' ? '#16a34a' : '#92400e' ?>;
+                  border-color:<?= strtolower($t['status_tank']) === 'active' ? '#bbf7d0' : '#fde68a' ?>;
+                "><?= ucfirst(htmlspecialchars($t['status_tank'])) ?></span>
+              </td>
+            </tr>
+          <?php endforeach; ?>
           </tbody>
         </table>
+        <div style="margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);">
+          <span><?= $onlineCount ?>/<?= $tankCount ?> tanks online</span>
+          <span style="font-weight:700;color:var(--text)"><?= number_format($totalCurrentLiters) ?>L / <?= number_format($totalMaxCapacity) ?>L</span>
+        </div>
         <?php else: ?>
           <p style="color:var(--subtle);font-size:.82rem;margin-top:.35rem">No tank data.</p>
         <?php endif; ?>
@@ -577,7 +663,6 @@ $initials = 'AD';
 </div>
 
 <script>
-// Sidebar toggle
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('overlay').classList.toggle('show');
@@ -669,5 +754,4 @@ async function loadForecast() {
 loadForecast();
 </script>
 </body>
-<link rel="stylesheet" href="/Others/all.css">
 </html>

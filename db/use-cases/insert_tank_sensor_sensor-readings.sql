@@ -11,7 +11,13 @@ INSERT INTO user_activity_logs (user_id,role, email, action, status) VALUES
 
 -- Step 6: Tank
 INSERT INTO tank (tankname, location_add, current_liters, max_capacity, status_tank)
-VALUES ('Tank 1', 'Jude Crib', 1200, 5000, 'Active');
+VALUES ('Agusan Tank', 'Agusan Canyon Manolo Fortich', 1200, 5000, 'Active');
+
+INSERT INTO tank (tankname, location_add, current_liters, max_capacity, status_tank)
+VALUES ('Libona Tank', 'Poblacion Libona', 1200, 5000, 'Active');
+
+INSERT INTO tank (tankname, location_add, current_liters, max_capacity, status_tank)
+VALUES ('Alae Tank', 'Alae Manolo Fortich', 1200, 5000, 'Active');
 
 -- Step 7: Sensor (tank_id = 1 now exists)
 INSERT INTO sensors (tank_id, sensor_type, model, unit, is_active)
