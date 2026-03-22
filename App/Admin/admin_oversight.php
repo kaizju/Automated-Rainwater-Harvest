@@ -1064,7 +1064,7 @@ $roleChartJson = json_encode(array_values($roleCounts));
                     </svg>
                     <?php if ($failedLogins > 0): ?><span class="notif-dot"></span><?php endif; ?>
                 </div>
-                <a href="<?= BASE_URL ?>/App/Users/user.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
+                <a href="<?= BASE_URL ?>/App/Admin/admin_userlogs.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
             </div>
         </header>
 
