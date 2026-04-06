@@ -335,6 +335,10 @@ body { font-family: 'Inter', sans-serif; background: #e5e7eb; color: #111827; fo
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
     </a>
+     <a href="<?= BASE_URL ?>/App/Manager/manager_oversight.php" class="nav-item <?= $activePage==='oversight'?'active':'' ?>">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Oversight
+  </a>
     <a href="<?= BASE_URL ?>/App/Manager/usage.php" class="nav-link">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Usage Stats
@@ -381,7 +385,7 @@ body { font-family: 'Inter', sans-serif; background: #e5e7eb; color: #111827; fo
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
         <span class="notif-dot"></span>
       </div>
-      <a href="<?= BASE_URL ?>/App/Users/user.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
+      <a href="<?php echo BASE_URL;?>/App/Manager/user.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
     </div>
   </header>
 

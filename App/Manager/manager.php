@@ -289,6 +289,10 @@ $initials = 'M';
       </svg>
       Dashboard
     </a>
+   <a href="<?= BASE_URL ?>/App/Manager/manager_oversight.php" class="nav-item <?= $activePage==='oversight'?'active':'' ?>">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Oversight
+  </a>
     <a href="<?php echo BASE_URL; ?>/App/Manager/usage.php" class="nav-item">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -359,7 +363,7 @@ $initials = 'M';
           </svg>
           <span class="notif-dot"></span>
         </div>
-        <a href="<?php echo BASE_URL; ?>/App/Users/user.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
+        <a href="<?php echo BASE_URL;?>/App/Manager/user.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
       </div>
     </header>
 
