@@ -27,7 +27,7 @@ $activeUsers = $pdo->query("
     LIMIT 10
 ")->fetchAll(PDO::FETCH_ASSOC);
 
-// ── Recent activity (all roles, last 50 — managers see everything except admin internals) ──
+// ── Recent activity (manager + user roles, paginated) ────────────────────────
 $filterRole   = $_GET['role']   ?? '';
 $filterAction = $_GET['action'] ?? '';
 $filterDate   = $_GET['date']   ?? date('Y-m-d');
@@ -91,13 +91,13 @@ $qualityRecent = $pdo->query("
     ORDER BY wq.recorded_at DESC LIMIT 10
 ")->fetchAll(PDO::FETCH_ASSOC);
 
-// ── Page visits by users (not admins) ────────────────────────────────────────
+// ── Page visits by users + managers (not admins), with IP ─────────────────────
 $pageVisits = $pdo->query("
-    SELECT pv.page_label, pv.page, pv.role, u.username, pv.visited_at
+    SELECT pv.page_label, pv.page, pv.role, pv.ip_address, u.username, pv.visited_at
     FROM page_visits pv
     LEFT JOIN users u ON pv.user_id = u.id
     WHERE pv.role IN ('user','manager')
-    ORDER BY pv.visited_at DESC LIMIT 15
+    ORDER BY pv.visited_at DESC LIMIT 50
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 // ── Usage trend (7 days) ──────────────────────────────────────────────────────
@@ -131,9 +131,9 @@ function timeAgoMgr(string $ts): string {
     return date('M j', strtotime($ts));
 }
 function actionIconMgr(string $a): string {
-    if (str_contains($a,'login'))   return '🔑';
-    if (str_contains($a,'logout'))  return '🚪';
-    if (str_contains($a,'delete'))  return '🗑️';
+    if (str_contains($a,'login'))     return '🔑';
+    if (str_contains($a,'logout'))    return '🚪';
+    if (str_contains($a,'delete'))    return '🗑️';
     if (str_contains($a,'page_view')) return '👁️';
     if (str_contains($a,'edit') || str_contains($a,'update')) return '✏️';
     return '📋';
@@ -225,6 +225,9 @@ function actionIconMgr(string $a): string {
     .tbl tr:hover td { background: #fafbfc; }
     .badge { display: inline-block; padding: .18rem .48rem; border-radius: 6px; font-size: .7rem; font-weight: 600; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; white-space: nowrap; }
 
+    /* IP chip */
+    .ip-chip { font-family: 'Courier New', monospace; font-size: .72rem; color: var(--subtle); background: #f8fafc; border: 1px solid var(--border); border-radius: 5px; padding: .1rem .4rem; white-space: nowrap; }
+
     /* TANK CARDS */
     .tank-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .85rem; }
     .tank-item { border: 1px solid var(--border); border-radius: 11px; padding: 1rem; }
@@ -239,7 +242,7 @@ function actionIconMgr(string $a): string {
     .mini-av { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700; color: #fff; flex-shrink: 0; }
 
     /* TABS */
-    .tabs { display: flex; gap: .4rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+    .tabs { display: flex; gap: .4rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; flex-wrap: wrap; }
     .tab { padding: .5rem .9rem; font-size: .8rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
     .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
@@ -281,7 +284,6 @@ function actionIconMgr(string $a): string {
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
     Dashboard
   </a>
-   
   <a href="<?= BASE_URL ?>/App/Manager/manager_oversight.php" class="nav-item <?= $activePage==='oversight'?'active':'' ?>">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
     Oversight
@@ -421,7 +423,7 @@ function actionIconMgr(string $a): string {
       </div>
     </div>
 
-    <!-- ACTIVITY + SENSORS TABS -->
+    <!-- ACTIVITY + SENSORS + QUALITY + PAGE VISITS TABS -->
     <div class="card">
       <div class="tabs">
         <div class="tab active" onclick="switchTab('log',this)">User Activity Log</div>
@@ -435,7 +437,7 @@ function actionIconMgr(string $a): string {
         <div class="tab" onclick="switchTab('pages',this)">Page Visits</div>
       </div>
 
-      <!-- USER ACTIVITY -->
+      <!-- ── USER ACTIVITY LOG ───────────────────────────────────────────── -->
       <div id="tab-log">
         <form method="get" class="filter-bar">
           <select name="role">
@@ -467,7 +469,7 @@ function actionIconMgr(string $a): string {
                 <td style="font-size:.75rem;color:var(--muted)"><?= htmlspecialchars($log['module'] ?? '—') ?></td>
                 <td style="font-size:.75rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
                     title="<?= htmlspecialchars($log['description'] ?? '') ?>"><?= htmlspecialchars($log['description'] ?? '—') ?></td>
-                <td style="font-size:.72rem;color:var(--subtle)"><?= htmlspecialchars($log['ip_address'] ?? '—') ?></td>
+                <td><span class="ip-chip"><?= htmlspecialchars($log['ip_address'] ?? '—') ?></span></td>
                 <td style="font-size:.75rem;color:var(--muted);white-space:nowrap"><?= timeAgoMgr($log['created_at']) ?></td>
               </tr>
               <?php endforeach; endif; ?>
@@ -486,7 +488,7 @@ function actionIconMgr(string $a): string {
         <?php endif; ?>
       </div>
 
-      <!-- SENSOR ANOMALIES -->
+      <!-- ── SENSOR ANOMALIES ────────────────────────────────────────────── -->
       <div id="tab-sensors" style="display:none">
         <div class="tbl-wrap">
           <table class="tbl">
@@ -508,7 +510,7 @@ function actionIconMgr(string $a): string {
         </div>
       </div>
 
-      <!-- WATER QUALITY LOG -->
+      <!-- ── WATER QUALITY LOG ───────────────────────────────────────────── -->
       <div id="tab-quality" style="display:none">
         <div class="tbl-wrap">
           <table class="tbl">
@@ -530,23 +532,41 @@ function actionIconMgr(string $a): string {
         </div>
       </div>
 
-      <!-- PAGE VISITS -->
+      <!-- ── PAGE VISITS (manager + user roles, with IP) ────────────────── -->
       <div id="tab-pages" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem">
+          <p style="font-size:.78rem;color:var(--muted)">
+            Showing last <strong><?= count($pageVisits) ?></strong> page visits by managers &amp; users.
+          </p>
+          <div style="display:flex;gap:.4rem">
+            <span class="badge" style="background:#f5f3ff;color:#7c3aed;border-color:#ddd6fe">Manager</span>
+            <span class="badge" style="background:#ecfdf5;color:#059669;border-color:#a7f3d0">User</span>
+          </div>
+        </div>
         <div class="tbl-wrap">
           <table class="tbl">
-            <thead><tr><th>User</th><th>Role</th><th>Page</th><th>When</th></tr></thead>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Page</th>
+                <th>IP Address</th>
+                <th>When</th>
+              </tr>
+            </thead>
             <tbody>
               <?php if (empty($pageVisits)): ?>
-                <tr><td colspan="4" style="text-align:center;color:var(--subtle);padding:1.5rem 0">No page visits logged yet.</td></tr>
+                <tr><td colspan="5" style="text-align:center;color:var(--subtle);padding:1.5rem 0">No page visits logged yet.</td></tr>
               <?php else: foreach ($pageVisits as $pv): ?>
               <tr>
                 <td style="font-weight:600;font-size:.82rem"><?= htmlspecialchars($pv['username'] ?? '—') ?></td>
                 <td><?= roleBadgeMgr($pv['role'] ?? 'user') ?></td>
                 <td>
-                  <div style="font-size:.8rem;font-weight:500"><?= htmlspecialchars($pv['page_label'] ?? '') ?></div>
+                  <div style="font-size:.8rem;font-weight:500"><?= htmlspecialchars($pv['page_label'] ?? '—') ?></div>
                   <div style="font-size:.7rem;color:var(--subtle)"><?= htmlspecialchars($pv['page']) ?></div>
                 </td>
-                <td style="font-size:.75rem;color:var(--muted);white-space:nowrap"><?= timeAgoMgr($pv['visited_at']) ?></td>
+                <td><span class="ip-chip"><?= htmlspecialchars($pv['ip_address'] ?? '—') ?></span></td>
+                <td style="font-size:.75rem;color:var(--muted);white-space:nowrap" title="<?= $pv['visited_at'] ?>"><?= timeAgoMgr($pv['visited_at']) ?></td>
               </tr>
               <?php endforeach; endif; ?>
             </tbody>

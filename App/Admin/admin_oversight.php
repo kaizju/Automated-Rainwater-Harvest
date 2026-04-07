@@ -59,12 +59,12 @@ $logStmt->bindValue(':offset', $offset,  PDO::PARAM_INT);
 $logStmt->execute();
 $logs = $logStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ── Page visits (recent 15) ───────────────────────────────────────────────────
+// ── Page visits (recent 50, ALL roles, with IP) ───────────────────────────────
 $visits = $pdo->query("
     SELECT pv.*, u.username, u.email AS user_email
     FROM page_visits pv
     LEFT JOIN users u ON pv.user_id = u.id
-    ORDER BY pv.visited_at DESC LIMIT 15
+    ORDER BY pv.visited_at DESC LIMIT 50
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 // ── Unresolved system alerts ──────────────────────────────────────────────────
@@ -293,6 +293,9 @@ function actionIcon(string $action): string {
     .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; margin-right: .35rem; animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
 
+    /* IP chip */
+    .ip-chip { font-family: 'Courier New', monospace; font-size: .72rem; color: var(--subtle); background: #f8fafc; border: 1px solid var(--border); border-radius: 5px; padding: .1rem .4rem; white-space: nowrap; }
+
     /* RESPONSIVE */
     @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .charts-row { grid-template-columns: 1fr; } }
     @media (max-width: 768px) {
@@ -479,7 +482,7 @@ function actionIcon(string $action): string {
         </div>
       </div>
 
-      <!-- ACTIVITY LOG -->
+      <!-- ── ACTIVITY LOG ─────────────────────────────────────────────────── -->
       <div id="tab-log">
         <form method="get" class="filter-bar">
           <input type="text"   name="user"   placeholder="Search user/email…" value="<?= htmlspecialchars($filterUser) ?>">
@@ -533,7 +536,7 @@ function actionIcon(string $action): string {
                   <?= htmlspecialchars($log['description'] ?? '—') ?>
                 </td>
                 <td><?= severityBadge($log['severity'] ?? 'info') ?></td>
-                <td style="color:var(--subtle);font-size:.72rem"><?= htmlspecialchars($log['ip_address'] ?? '—') ?></td>
+                <td><span class="ip-chip"><?= htmlspecialchars($log['ip_address'] ?? '—') ?></span></td>
                 <td style="white-space:nowrap;font-size:.75rem;color:var(--muted)" title="<?= $log['created_at'] ?>">
                   <?= timeAgo($log['created_at']) ?>
                 </td>
@@ -561,8 +564,18 @@ function actionIcon(string $action): string {
         <?php endif; ?>
       </div>
 
-      <!-- PAGE VISITS -->
+      <!-- ── PAGE VISITS (all roles + IP) ───────────────────────────────── -->
       <div id="tab-visits" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem">
+          <p style="font-size:.78rem;color:var(--muted)">
+            Showing last <strong><?= count($visits) ?></strong> page visits across all roles.
+          </p>
+          <div style="display:flex;gap:.4rem">
+            <span class="badge" style="background:#eff6ff;color:#2563eb;border-color:#bfdbfe">Admin</span>
+            <span class="badge" style="background:#f5f3ff;color:#7c3aed;border-color:#ddd6fe">Manager</span>
+            <span class="badge" style="background:#ecfdf5;color:#059669;border-color:#a7f3d0">User</span>
+          </div>
+        </div>
         <div class="tbl-wrap">
           <table class="tbl">
             <thead>
@@ -570,7 +583,7 @@ function actionIcon(string $action): string {
                 <th>User</th>
                 <th>Role</th>
                 <th>Page</th>
-                <th>IP</th>
+                <th>IP Address</th>
                 <th>When</th>
               </tr>
             </thead>
@@ -581,15 +594,15 @@ function actionIcon(string $action): string {
               <tr>
                 <td>
                   <div style="font-weight:600;font-size:.82rem"><?= htmlspecialchars($v['username'] ?? 'Guest') ?></div>
-                  <div style="font-size:.7rem;color:var(--subtle)"><?= htmlspecialchars($v['user_email'] ?? $v['email'] ?? '') ?></div>
+                  <div style="font-size:.7rem;color:var(--subtle)"><?= htmlspecialchars($v['user_email'] ?? '') ?></div>
                 </td>
                 <td><?= roleBadge($v['role'] ?? 'user') ?></td>
                 <td>
-                  <div style="font-size:.8rem;font-weight:600"><?= htmlspecialchars($v['page_label'] ?? '') ?></div>
+                  <div style="font-size:.8rem;font-weight:600"><?= htmlspecialchars($v['page_label'] ?? '—') ?></div>
                   <div style="font-size:.7rem;color:var(--subtle)"><?= htmlspecialchars($v['page']) ?></div>
                 </td>
-                <td style="font-size:.73rem;color:var(--subtle)"><?= htmlspecialchars($v['ip_address'] ?? '—') ?></td>
-                <td style="font-size:.75rem;color:var(--muted);white-space:nowrap"><?= timeAgo($v['visited_at']) ?></td>
+                <td><span class="ip-chip"><?= htmlspecialchars($v['ip_address'] ?? '—') ?></span></td>
+                <td style="font-size:.75rem;color:var(--muted);white-space:nowrap" title="<?= $v['visited_at'] ?>"><?= timeAgo($v['visited_at']) ?></td>
               </tr>
               <?php endforeach; endif; ?>
             </tbody>
@@ -597,7 +610,7 @@ function actionIcon(string $action): string {
         </div>
       </div>
 
-      <!-- SYSTEM ALERTS -->
+      <!-- ── SYSTEM ALERTS ───────────────────────────────────────────────── -->
       <div id="tab-alerts" style="display:none">
         <?php if (empty($alerts)): ?>
           <p style="color:var(--subtle);font-size:.82rem;text-align:center;padding:1.5rem 0">✅ No unresolved alerts.</p>
