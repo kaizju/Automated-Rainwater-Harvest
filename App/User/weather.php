@@ -12,7 +12,7 @@ $CITY    = 'Manolo Fortich, Bukidnon';
 $currentUrl  = "https://api.openweathermap.org/data/2.5/weather?lat={$LAT}&lon={$LON}&appid={$API_KEY}&units=metric";
 $forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?lat={$LAT}&lon={$LON}&appid={$API_KEY}&units=metric&cnt=40";
 
-function fetchJson($url) {
+function fetchJson($url) {  
     $ctx = stream_context_create(['http' => ['timeout' => 5]]);
     $raw = @file_get_contents($url, false, $ctx);
     return $raw ? json_decode($raw, true) : null;
