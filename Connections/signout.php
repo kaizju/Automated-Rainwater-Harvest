@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../Connections/config.php';
-require_once __DIR__ . '/../Connections/functions.php';
+require_once __DIR__ . '/../connections/config.php';
+require_once __DIR__ . '/../connections/functions.php';
 
 // Log logout BEFORE destroying the session (session data still available here)
 if (isLoggedIn()) {

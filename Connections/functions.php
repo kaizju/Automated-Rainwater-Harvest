@@ -40,7 +40,7 @@ function requireAnyRole(array $roles): void {
     requireLogin();
     if (!hasAnyRole($roles)) {
         logActivity('unauthorized_access', 'warning', 'auth', 'Attempted access to restricted page');
-        redirect('/App/Dashboard/dashboard.php');
+        redirect('/app/Dashboard/dashboard.php');
     }
 }
 

@@ -1,12 +1,12 @@
 <?php
-require_once __DIR__ . '/Connections/config.php';
-require_once __DIR__ . '/Connections/functions.php';
+require_once __DIR__ . '/connections/config.php';
+require_once __DIR__ . '/connections/functions.php';
 
 if (isLoggedIn()) {
     switch ($_SESSION['role']) {
-        case 'admin':   redirect('/App/Admin/admin_oversight.php'); break;
-        case 'manager': redirect('/App/Manager/manager.php');       break;
-        case 'user':    redirect('/App/User/dashboard.php');        break;
+        case 'admin':   redirect('/app/admin/admin_oversight.php'); break;
+        case 'manager': redirect('/app/manager/manager.php');       break;
+        case 'user':    redirect('/app/user/dashboard.php');        break;
     }
 }
 
@@ -29,9 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         logActivity('login', 'success', 'auth', 'User logged in');
 
         switch ($user['role']) {
-            case 'admin':   redirect('/App/Admin/admin_oversight.php'); break;
-            case 'manager': redirect('/App/Manager/manager.php');       break;
-            case 'user':    redirect('/App/User/dashboard.php');        break;
+            case 'admin':   redirect('/app/admin/admin_oversight.php'); break;
+            case 'manager': redirect('/app/manager/manager.php');       break;
+            case 'user':    redirect('/app/user/dashboard.php');        break;
         }
     } else {
         $error = 'Invalid credentials or email not verified.';

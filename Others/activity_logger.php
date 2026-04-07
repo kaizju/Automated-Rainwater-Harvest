@@ -8,5 +8,5 @@
  */
 
 if (!function_exists('logActivity')) {
-    require_once __DIR__ . '/../Connections/functions.php';
+    require_once __DIR__ . '/../connections/functions.php';
 }

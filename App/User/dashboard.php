@@ -1,5 +1,5 @@
 <?php
-require_once '../../Connections/config.php';
+require_once '../../connections/config.php';
 
 // ── All Tanks (aggregate) ─────────────────────────────────────────────────
 $tanksAll = $pdo->query("SELECT * FROM tank")->fetchAll(PDO::FETCH_ASSOC);
