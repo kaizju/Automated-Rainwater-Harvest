@@ -9,8 +9,8 @@ EcoRain is a web-based monitoring and management system for automated rainwater 
 ```
 AUTOMATED-RAINWATER-HARVESTING/
 │
-├── App/
-│   ├── Admin/                          # Admin role pages
+├── app/
+│   ├── admin/                          # Admin role pages
 │   │   ├── admin_dashboard.php         # Main admin dashboard with fleet overview
 │   │   ├── admin_map.php               # Live tank map with Leaflet.js + geocoding
 │   │   ├── admin_oversight.php         # Admin oversight & monitoring panel
@@ -19,7 +19,7 @@ AUTOMATED-RAINWATER-HARVESTING/
 │   │   ├── admin_userlogs.php          # User activity logs & role management
 │   │   └── admin_weather.php           # Weather monitoring page
 │   │
-│   ├── Manager/                        # Manager role pages
+│   ├── manager/                        # Manager role pages
 │   │   ├── manager.php                 # Manager dashboard
 │   │   ├── map.php                     # Tank map view for managers
 │   │   ├── settings.php                # Settings page (add/delete tanks)
@@ -27,19 +27,19 @@ AUTOMATED-RAINWATER-HARVESTING/
 │   │   ├── user.php                    # Manager profile page
 │   │   └── weather.php                 # Weather page for managers
 │   │
-│   └── User/                           # Regular user role pages
+│   └── user/                           # Regular user role pages
 │       ├── dashboard.php               # User dashboard
 │       ├── map.php                     # Tank map view for users
 │       ├── profileinfo.php             # User profile & activity logs
 │       ├── usage.php                   # Personal usage statistics
 │       └── weather.php                 # Weather page for users
 │
-├── Connections/                        # Core backend utilities
+├── connections/                        # Core backend utilities
 │   ├── config.php                      # PDO database connection & BASE_URL config
 │   ├── functions.php                   # Shared helper functions (requireLogin, redirect)
 │   └── signout.php                     # Session destroy & logout handler
 │
-├── Others/                             # Shared assets & utilities
+├── others/                             # Shared assets & utilities
 │   ├── activity_logger.php             # Reusable activity logging function
 │   ├── all.css                         # Global shared stylesheet (sidebar, nav, layout)
 │   └── map.css                         # Leaflet map overrides & map UI styles
