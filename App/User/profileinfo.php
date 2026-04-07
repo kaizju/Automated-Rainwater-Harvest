@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '../../../Connections/config.php';
-require_once __DIR__ . '../../../Connections/functions.php';
-require_once __DIR__ . '../../../Others/activity_logger.php';
+require_once __DIR__ . '../../../connections/config.php';
+require_once __DIR__ . '../../../connections/functions.php';
+require_once __DIR__ . '../../../others/activity_logger.php';
 
 requireLogin();
 
@@ -213,28 +213,28 @@ $failed_logs = $failed_stmt->fetchColumn();
 
 <!-- TOP NAV -->
 <nav class="top-nav">
-    <a href="<?php echo BASE_URL; ?>/App/User/dashboard.php" class="top-nav-logo">
+    <a href="<?php echo BASE_URL; ?>/app/user/dashboard.php" class="top-nav-logo">
         <div class="logo-drop">💧</div>
         <span class="logo-name">EcoRain</span>
     </a>
     <div class="top-nav-links">
-        <a href="<?php echo BASE_URL; ?>/App/User/dashboard.php" class="top-nav-link hide-mobile">
+        <a href="<?php echo BASE_URL; ?>/app/user/dashboard.php" class="top-nav-link hide-mobile">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
             Dashboard
         </a>
-        <a href="<?php echo BASE_URL; ?>/App/User/usage.php" class="top-nav-link hide-mobile">
+        <a href="<?php echo BASE_URL; ?>/app/user/usage.php" class="top-nav-link hide-mobile">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             Usage
         </a>
-        <a href="<?php echo BASE_URL; ?>/App/User/weather.php" class="top-nav-link hide-mobile">
+        <a href="<?php echo BASE_URL; ?>/app/user/weather.php" class="top-nav-link hide-mobile">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
             Weather
         </a>
-        <a href="<?php echo BASE_URL; ?>/App/User/map.php" class="top-nav-link hide-mobile">
+        <a href="<?php echo BASE_URL; ?>/app/user/map.php" class="top-nav-link hide-mobile">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
             Tank Map
         </a>
-        <a href="<?php echo BASE_URL; ?>/Connections/signout.php" class="top-nav-link logout-link">
+        <a href="<?php echo BASE_URL; ?>/connections/signout.php" class="top-nav-link logout-link">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
             Log Out
         </a>

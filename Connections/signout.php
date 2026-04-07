@@ -1,14 +1,13 @@
 <?php
-require_once __DIR__ . '/../Connections/config.php';
-require_once __DIR__ . '/../Connections/functions.php';
-require_once __DIR__ . '/../Others/activity_logger.php';
+require_once __DIR__ . '/../connections/config.php';
+require_once __DIR__ . '/../connections/functions.php';
 
-// Log the logout activity before destroying the session
-if (isset($_SESSION['user_id']) && isset($_SESSION['email'])) {
-    logActivity($pdo, $_SESSION['user_id'], $_SESSION['email'], 'logout', 'success');
+// Log logout BEFORE destroying the session (session data still available here)
+if (isLoggedIn()) {
+    logActivity('logout', 'success', 'auth', 'User logged out');
 }
 
-// Clear all session data
+// Clear session data
 $_SESSION = [];
 
 // Destroy the session cookie
@@ -25,10 +24,7 @@ if (ini_get('session.use_cookies')) {
     );
 }
 
-
 session_destroy();
 
-
-die(header('Location: /sag-ob/index.php'));
+header('Location: ' . BASE_URL . '/index.php');
 exit;
-?>

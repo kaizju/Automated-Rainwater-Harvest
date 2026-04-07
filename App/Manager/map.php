@@ -1,6 +1,6 @@
 <?php
 // ─── Database Connection ───────────────────────────────────────────────────
-require_once __DIR__ . '../../../Connections/config.php';
+require_once __DIR__ . '../../../connections/config.php';
 
 // ─── Auth / Session Guard ──────────────────────────────────────────────────
 if (session_status() === PHP_SESSION_NONE) session_start();
@@ -319,33 +319,37 @@ function barColor(int $pct): string {
             <span class="logo-text">EcoRain</span>
         </div>
 
-        <a href="<?= BASE_URL ?>/App/Manager/manager.php" class="nav-item">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            <span>Dashboard</span>
-        </a>
-        <a href="<?= BASE_URL ?>/App/Manager/usage.php" class="nav-item">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            <span>Usage Stats</span>
-        </a>
-        <a href="<?= BASE_URL ?>/App/Manager/weather.php" class="nav-item">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
-            <span>Weather</span>
-        </a>
-        <a href="<?= BASE_URL ?>/App/Manager/map.php" class="nav-item active">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>Tank Map</span>
-        </a>
-        <a href="<?= BASE_URL ?>/App/Manager/settings.php" class="nav-item">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            <span>Settings</span>
-        </a>
+         <a href="<?= BASE_URL ?>/app/manager/manager.php" class="nav-item <?= $activePage==='dashboard'?'active':'' ?>">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </a>
+  <a href="<?= BASE_URL ?>/app/manager/manager_oversight.php" class="nav-item <?= $activePage==='oversight'?'active':'' ?>">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Oversight
+  </a>
+  <a href="<?= BASE_URL ?>/app/manager/usage.php" class="nav-item <?= $activePage==='usage'?'active':'' ?>">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Usage Stats
+  </a>
+  <a href="<?= BASE_URL ?>/app/manager/weather.php" class="nav-item">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+    Weather
+  </a>
+  <a href="<?= BASE_URL ?>/app/manager/map.php" class="nav-item">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    Tank Map
+  </a>
+  <a href="<?= BASE_URL ?>/app/manager/settings.php" class="nav-item">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Settings
+  </a>
 
-        <div class="sidebar-spacer"></div>
-        <div class="sidebar-bottom">
-            <a href="<?= BASE_URL ?>/Connections/signout.php" class="nav-item logout">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-                <span>Log Out</span>
-            </a>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-bottom">
+    <a href="<?= BASE_URL ?>/connections/signout.php" class="nav-item logout">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      Log Out
+    </a>
         </div>
     </aside>
 
@@ -372,7 +376,7 @@ function barColor(int $pct): string {
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
                     <span class="notif-dot"></span>
                 </div>
-                <a href="<?= BASE_URL ?>/App/Users/user.php" class="avatar" title="<?= htmlspecialchars($currentUser['username'] ?? 'User') ?>">
+                <a href="<?php echo BASE_URL;?>/app/manager/user.php" class="avatar" title="<?= htmlspecialchars($currentUser['username'] ?? 'User') ?>">
                     <?= strtoupper(substr($currentUser['username'] ?? 'U', 0, 1)) ?>
                 </a>
             </div>

@@ -1,5 +1,5 @@
 <?php
-require_once '../../Connections/config.php';
+require_once '../../connections/config.php';
 
 $action  = $_POST['action'] ?? '';
 $success = '';
@@ -232,11 +232,11 @@ $logs = $pdo->query("SELECT ual.*, u.email AS user_email FROM user_activity_logs
 <body>
 
 <nav class="top-nav">
-    <a href="<?php echo BASE_URL; ?>/App/Manager/manager.php" class="top-nav-brand">
+    <a href="<?php echo BASE_URL; ?>/app/manager/manager.php" class="top-nav-brand">
         <div class="logo-drop">💧</div>
         <span class="logo-name">EcoRain</span>
     </a>
-    <a href="<?php echo BASE_URL; ?>/App/Manager/manager.php" class="top-nav-back">
+    <a href="<?php echo BASE_URL; ?>/app/manager/manager.php" class="top-nav-back">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Back to Dashboard
     </a>
