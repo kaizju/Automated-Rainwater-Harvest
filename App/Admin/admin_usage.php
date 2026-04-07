@@ -49,7 +49,7 @@ $breakDataJson    = json_encode($breakData   ?: [0]);
 <title>EcoRain — Usage Statistics</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/all.css">
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/others/all.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: #e5e7eb; color: #111827; font-size: 14px; display: flex; min-height: 100vh; overflow-x: hidden; }

@@ -147,7 +147,7 @@ function actionIconMgr(string $a): string {
   <title>EcoRain — Manager Oversight</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="<?= BASE_URL ?>/Others/all.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/others/all.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {

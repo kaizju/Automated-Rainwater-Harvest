@@ -88,10 +88,10 @@ $rfDataJson   = json_encode($rfData);
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>EcoRain — Weather Monitor</title>
-<link rel="stylesheet" href="/Others/all.css">
+<link rel="stylesheet" href="/others/all.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/map.css">
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/others/map.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: #e5e7eb; color: #111827; font-size: 14px; display: flex; min-height: 100vh; overflow-x: hidden; }

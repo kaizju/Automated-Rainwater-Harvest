@@ -208,7 +208,7 @@ function renderHeader(string $title): void {
         <title><?= htmlspecialchars($title) ?></title>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="<?= BASE_URL ?>/Others/all.css">
+        <link rel="stylesheet" href="<?= BASE_URL ?>/others/all.css">
     </head>
     <body>
         <?php if ($isLoggedIn): ?>

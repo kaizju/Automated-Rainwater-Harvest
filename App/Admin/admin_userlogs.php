@@ -95,7 +95,7 @@ $logs = $pdo->query("SELECT ual.*, u.email AS user_email FROM user_activity_logs
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 
     <!-- Shared admin stylesheet — loaded ONCE -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/all.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/others/all.css">
 
     <!-- Page-specific overrides (only what all.css does NOT cover) -->
     <style>

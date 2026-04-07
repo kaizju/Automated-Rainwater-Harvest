@@ -92,7 +92,7 @@ $initials = 'AD';
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- FIX: stylesheet moved inside <head> only — duplicate after </html> removed -->
-  <link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/all.css">
+  <link rel="stylesheet" href="<?php echo BASE_URL; ?>/others/all.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
