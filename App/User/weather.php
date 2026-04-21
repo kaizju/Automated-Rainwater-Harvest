@@ -1,5 +1,5 @@
 <?php
-require_once '../../connections/config.php';
+require_once __DIR__ . '/../../Connections/config.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 if (!isset($_SESSION['user_id'])) { header('Location: ../../index.php'); exit; }
@@ -56,11 +56,22 @@ if ($forecastData && isset($forecastData['list'])) {
     $daily = array_values(array_slice($seen, 0, 7));
 }
 
-$rainfall14 = $pdo->query("SELECT DATE(recorded_at) AS d, SUM(usage_liters) AS mm FROM water_usage WHERE recorded_at >= DATE_SUB(CURDATE(), INTERVAL 13 DAY) AND usage_type != 'Tap' GROUP BY DATE(recorded_at) ORDER BY d ASC")->fetchAll(PDO::FETCH_ASSOC);
+$rainfall14 = $pdo->query("
+    SELECT DATE(recorded_at) AS d, SUM(usage_liters) AS mm
+    FROM water_usage
+    WHERE recorded_at >= DATE_SUB(CURDATE(), INTERVAL 13 DAY)
+      AND usage_type != 'Tap'
+    GROUP BY DATE(recorded_at) ORDER BY d ASC
+")->fetchAll(PDO::FETCH_ASSOC);
+
 $rfMap = [];
 foreach ($rainfall14 as $r) $rfMap[$r['d']] = round((float)$r['mm'] / 10, 1);
 $rfLabels = []; $rfData = [];
-for ($i = 13; $i >= 0; $i--) { $day = date('Y-m-d', strtotime("-$i days")); $rfLabels[] = date('M j', strtotime($day)); $rfData[] = $rfMap[$day] ?? 0; }
+for ($i = 13; $i >= 0; $i--) {
+    $day = date('Y-m-d', strtotime("-$i days"));
+    $rfLabels[] = date('M j', strtotime($day));
+    $rfData[]   = $rfMap[$day] ?? 0;
+}
 
 $totalReadings = (int)$pdo->query("SELECT COUNT(*) FROM sensor_readings")->fetchColumn();
 $rainReadings  = (int)$pdo->query("SELECT COUNT(*) FROM sensor_readings WHERE anomaly != 'None'")->fetchColumn();
@@ -73,12 +84,22 @@ $rainAlert = false; $alertMsg = '';
 if ($forecastData && isset($forecastData['list'])) {
     foreach (array_slice($forecastData['list'], 0, 8) as $item) {
         $pop = ($item['pop'] ?? 0) * 100;
-        if ($pop >= 70) { $rainAlert = true; $alertMsg = 'Heavy rain expected in the next 24 hours (' . round($pop) . '% chance). Check tank overflow settings and ensure drainage is clear.'; break; }
+        if ($pop >= 70) {
+            $rainAlert = true;
+            $alertMsg  = 'Heavy rain expected in the next 24 hours (' . round($pop) . '% chance). Check tank overflow settings and ensure drainage is clear.';
+            break;
+        }
     }
 }
-if (!$rainAlert && $temp !== '--' && $temp > 32) { $rainAlert = true; $alertMsg = "Temperature is {$temp}°C. Heat risk — stay hydrated and limit outdoor exposure between 11 AM – 3 PM."; }
+if (!$rainAlert && $temp !== '--' && $temp > 32) {
+    $rainAlert = true;
+    $alertMsg  = "Temperature is {$temp}°C. Heat risk — stay hydrated and limit outdoor exposure between 11 AM – 3 PM.";
+}
 
+// Avatar initials
 $initials = strtoupper(substr($_SESSION['email'] ?? 'U', 0, 2));
+
+$activePage   = 'weather';
 $rfLabelsJson = json_encode($rfLabels);
 $rfDataJson   = json_encode($rfData);
 ?>
@@ -90,36 +111,81 @@ $rfDataJson   = json_encode($rfData);
 <title>EcoRain — Weather Monitor</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="/Others/all.css">
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/map.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: #e5e7eb; color: #111827; font-size: 14px; display: flex; min-height: 100vh; overflow-x: hidden; }
 
-  .sidebar { width: 260px; background: #0f172a; min-height: 100vh; height: 100vh; position: fixed; top: 0; left: 0; display: flex; flex-direction: column; padding: 1.5rem 1rem; flex-shrink: 0; z-index: 100; transition: transform .25s ease; overflow-y: auto; }
+  /* ── SIDEBAR ─────────────────────────────────────────────────────── */
+  .sidebar {
+    width: 240px;
+    background: #0f172a;
+    min-height: 100vh;
+    height: 100vh;
+    position: fixed;
+    top: 0; left: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    flex-shrink: 0;
+    z-index: 100;
+    transition: transform .25s ease;
+    overflow-y: auto;
+  }
   .sidebar.open { transform: translateX(0) !important; }
-  .sidebar-logo { display: flex; align-items: center; gap: .6rem; padding: .25rem .5rem .25rem .25rem; margin-bottom: 2rem; }
-  .logo-drop { width: 34px; height: 34px; background: linear-gradient(160deg,#60a5fa 20%,#2563eb 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
-  .logo-name { font-size: 1.1rem; font-weight: 700; color: #fff; }
-  .nav-section { flex: 1; display: flex; flex-direction: column; gap: .15rem; }
-  .nav-link { display: flex; align-items: center; gap: .75rem; padding: .6rem .85rem; border-radius: 8px; font-size: .875rem; font-weight: 500; color: #94a3b8; text-decoration: none; transition: background .15s, color .15s; }
+
+  /* Logo */
+  .sidebar-logo {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .25rem .5rem .25rem .25rem;
+    margin-bottom: 1.5rem;
+  }
+  .logo-drop {
+    width: 34px; height: 34px;
+    background: linear-gradient(160deg,#60a5fa 20%,#2563eb 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .logo-name { font-size: 1.1rem; font-weight: 700; color: #fff; letter-spacing: -.02em; }
+
+  /* Nav section label */
+  .nav-section-label {
+    font-size: .6rem; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: #475569; padding: .65rem .75rem .25rem;
+  }
+
+  /* Nav links */
+  .nav-link {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .6rem .85rem; border-radius: 9px;
+    font-size: .875rem; font-weight: 500;
+    color: #94a3b8; text-decoration: none;
+    margin-bottom: .1rem;
+    transition: background .15s, color .15s;
+  }
   .nav-link svg { width: 17px; height: 17px; flex-shrink: 0; stroke-width: 1.8; }
   .nav-link:hover  { background: rgba(255,255,255,.07); color: #e2e8f0; }
   .nav-link.active { background: rgba(255,255,255,.12); color: #fff; font-weight: 600; }
-  .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,.08); }
   .nav-link.logout:hover { background: rgba(239,68,68,.13); color: #fca5a5; }
 
+  .sidebar-spacer { flex: 1; }
+  .sidebar-footer { padding-top: 1rem; border-top: 1px solid rgba(255,255,255,.08); }
+
+  /* ── OVERLAY ─────────────────────────────────────────────────────── */
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 99; }
   .overlay.show { display: block; }
 
-  .main-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-left: 260px; transition: margin-left .25s; }
+  /* ── MAIN WRAP ───────────────────────────────────────────────────── */
+  .main-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-left: 240px; transition: margin-left .25s; }
 
+  /* ── TOPBAR ──────────────────────────────────────────────────────── */
   .topbar { height: 64px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; flex-shrink: 0; position: sticky; top: 0; z-index: 50; }
   .topbar-left { display: flex; align-items: center; gap: .75rem; }
   .hamburger { display: none; background: none; border: none; cursor: pointer; padding: .35rem; color: #111827; border-radius: 8px; }
   .hamburger svg { width: 22px; height: 22px; }
-  .topbar-left .page-title { font-size: 1.25rem; font-weight: 700; color: #111827; }
-  .topbar-left .page-sub { font-size: .78rem; color: #6b7280; margin-top: .1rem; }
+  .page-title { font-size: 1.05rem; font-weight: 700; color: #111827; }
+  .page-sub { font-size: .72rem; color: #6b7280; margin-top: .1rem; }
   .topbar-right { display: flex; align-items: center; gap: .85rem; }
   .t-search { display: flex; align-items: center; gap: .5rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: .45rem .85rem; width: 200px; }
   .t-search svg { width: 14px; height: 14px; color: #9ca3af; flex-shrink: 0; }
@@ -130,6 +196,7 @@ $rfDataJson   = json_encode($rfData);
   .notif-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; background: #ef4444; border-radius: 50%; border: 1.5px solid #fff; }
   .t-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#3b82f6,#8b5cf6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: .8rem; font-weight: 600; cursor: pointer; text-decoration: none; }
 
+  /* ── PAGE CONTENT ────────────────────────────────────────────────── */
   .page-content { flex: 1; overflow-y: auto; padding: 1.75rem 2rem 3rem; display: flex; flex-direction: column; gap: 1.25rem; }
 
   /* HERO */
@@ -142,7 +209,6 @@ $rfDataJson   = json_encode($rfData);
   .hero-temp-row { display: flex; align-items: flex-end; gap: 1.5rem; margin-bottom: 1.25rem; position: relative; z-index: 1; flex-wrap: wrap; }
   .big-temp { font-family: 'Space Grotesk', sans-serif; font-size: clamp(3rem,6vw,5rem); font-weight: 700; line-height: 1; }
   .big-temp sup { font-size: 1.4rem; vertical-align: super; }
-  .weather-desc-wrap { padding-bottom: .4rem; }
   .weather-desc { font-size: 1rem; opacity: .85; margin-top: .3rem; }
   .feels-like { font-size: .78rem; opacity: .65; margin-top: .2rem; }
   .hero-cloud { font-size: 5rem; opacity: .88; position: absolute; right: 2rem; top: 1.75rem; pointer-events: none; }
@@ -192,7 +258,7 @@ $rfDataJson   = json_encode($rfData);
   .dleg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .dleg-val { font-weight: 700; color: #111827; }
 
-  /* RESPONSIVE */
+  /* ── RESPONSIVE ──────────────────────────────────────────────────── */
   @media (max-width: 1000px) { .bottom-grid { grid-template-columns: 1fr; } }
   @media (max-width: 900px) {
     .sidebar { transform: translateX(-100%); }
@@ -215,50 +281,80 @@ $rfDataJson   = json_encode($rfData);
 
 <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
+<!-- ═══════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════ -->
 <aside class="sidebar" id="sidebar">
+
   <div class="sidebar-logo">
     <div class="logo-drop">💧</div>
     <span class="logo-name">EcoRain</span>
   </div>
-  <nav class="nav-section">
-     <a href="<?php echo BASE_URL; ?>/app/user/dashboard.php" class="top-nav-logo">
-        <div class="logo-drop">💧</div>
-        <span class="logo-name">EcoRain</span>
+
+  <nav>
+    <a href="<?php echo BASE_URL; ?>/App/User/dashboard.php"
+       class="nav-link <?= $activePage === 'dashboard' ? 'active' : '' ?>">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
     </a>
-    <div class="top-nav-links">
-        <a href="<?php echo BASE_URL; ?>/app/user/dashboard.php" class="top-nav-link hide-mobile">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            Dashboard
-        </a>
-        <a href="<?php echo BASE_URL; ?>/app/user/usage.php" class="top-nav-link hide-mobile">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Usage
-        </a>
-        <a href="<?php echo BASE_URL; ?>/app/user/weather.php" class="top-nav-link hide-mobile">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
-            Weather
-        </a>
-        <a href="<?php echo BASE_URL; ?>/app/user/map.php" class="top-nav-link hide-mobile">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Tank Map
-        </a>
-        <a href="<?php echo BASE_URL; ?>/connections/signout.php" class="top-nav-link logout-link">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-            Log Out
-        </a>
+
+    <a href="<?php echo BASE_URL; ?>/App/User/usage.php"
+       class="nav-link <?= $activePage === 'usage' ? 'active' : '' ?>">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      Usage Stats
+    </a>
+
+    <a href="<?php echo BASE_URL; ?>/App/User/weather.php"
+       class="nav-link <?= $activePage === 'weather' ? 'active' : '' ?>">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+      </svg>
+      Weather
+    </a>
+
+    <a href="<?php echo BASE_URL; ?>/App/User/map.php"
+       class="nav-link <?= $activePage === 'map' ? 'active' : '' ?>">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      Tank Map
+    </a>
   </nav>
+
+  <div class="sidebar-spacer"></div>
+
   <div class="sidebar-footer">
     <a href="<?php echo BASE_URL; ?>/Connections/signout.php" class="nav-link logout">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+      </svg>
       Log Out
     </a>
   </div>
+
 </aside>
+<!-- END SIDEBAR -->
 
 <div class="main-wrap">
+
+  <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-left">
-      <button class="hamburger" onclick="toggleSidebar()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <button class="hamburger" onclick="toggleSidebar()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
       <div>
         <div class="page-title">Weather Monitor</div>
         <div class="page-sub">Live conditions — <?= htmlspecialchars($CITY) ?></div>
@@ -266,17 +362,26 @@ $rfDataJson   = json_encode($rfData);
     </div>
     <div class="topbar-right">
       <div class="t-search">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
         <input type="text" placeholder="Search..."/>
       </div>
       <div class="t-icon">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
         <span class="notif-dot"></span>
       </div>
-      <a href="<?php echo BASE_URL;?>/App/User/profileinfo.php" class="t-avatar"><?= htmlspecialchars($initials) ?></a>
+      <a href="<?php echo BASE_URL; ?>/App/User/profileinfo.php" class="t-avatar">
+        <?= htmlspecialchars($initials) ?>
+      </a>
     </div>
   </header>
 
+  <!-- PAGE CONTENT -->
   <div class="page-content">
 
     <!-- HERO -->
@@ -290,7 +395,7 @@ $rfDataJson   = json_encode($rfData);
       <div class="hero-temp-row">
         <div>
           <div class="big-temp"><?= $temp ?><sup>°</sup></div>
-          <div class="weather-desc-wrap">
+          <div>
             <div class="weather-desc"><?= $weatherIcon ?> <?= htmlspecialchars($description) ?></div>
             <div class="feels-like">Feels like <?= $feelsLike ?>°C · <?= $cloudiness ?>% cloud cover</div>
           </div>
@@ -309,17 +414,26 @@ $rfDataJson   = json_encode($rfData);
     <?php if ($rainAlert): ?>
     <div class="alert-banner">
       <div class="alert-icon">⚠️</div>
-      <div><div class="alert-title">Weather Advisory</div><div class="alert-desc"><?= htmlspecialchars($alertMsg) ?></div></div>
+      <div>
+        <div class="alert-title">Weather Advisory</div>
+        <div class="alert-desc"><?= htmlspecialchars($alertMsg) ?></div>
+      </div>
     </div>
     <?php elseif (!$currentWeather): ?>
     <div class="alert-banner" style="border-color:#fca5a5;background:#fef2f2;">
       <div class="alert-icon">📡</div>
-      <div><div class="alert-title" style="color:#991b1b;">Weather API Unavailable</div><div class="alert-desc" style="color:#7f1d1d;">Could not reach OpenWeatherMap.</div></div>
+      <div>
+        <div class="alert-title" style="color:#991b1b;">Weather API Unavailable</div>
+        <div class="alert-desc" style="color:#7f1d1d;">Could not reach OpenWeatherMap.</div>
+      </div>
     </div>
     <?php else: ?>
     <div class="alert-banner" style="border-color:#bbf7d0;background:#f0fdf4;">
       <div class="alert-icon">✅</div>
-      <div><div class="alert-title" style="color:#166534;">All Clear</div><div class="alert-desc" style="color:#14532d;">No weather alerts for <?= htmlspecialchars($CITY) ?>. Conditions are normal.</div></div>
+      <div>
+        <div class="alert-title" style="color:#166534;">All Clear</div>
+        <div class="alert-desc" style="color:#14532d;">No weather alerts for <?= htmlspecialchars($CITY) ?>. Conditions are normal.</div>
+      </div>
     </div>
     <?php endif; ?>
 
@@ -336,14 +450,15 @@ $rfDataJson   = json_encode($rfData);
             $dMin  = round($day['main']['temp_min']);
             $dPop  = round(($day['pop'] ?? 0) * 100);
             $dDay  = $i === 0 ? 'Today' : date('D', $day['dt']);
-            $isToday = $i === 0;
           ?>
-          <div class="fc-item <?= $isToday ? 'today' : '' ?>">
+          <div class="fc-item <?= $i === 0 ? 'today' : '' ?>">
             <div class="fc-day"><?= $dDay ?></div>
             <div class="fc-emoji"><?= $dEmoj ?></div>
             <div class="fc-temp"><?= $dTemp ?>°</div>
             <div class="fc-hilo"><span><?= $dMax ?>°</span><span class="fc-lo"><?= $dMin ?>°</span></div>
-            <?php if ($dPop > 0): ?><div class="fc-rain <?= !$isToday ? 'has-rain' : '' ?>">💧 <?= $dPop ?>%</div><?php endif; ?>
+            <?php if ($dPop > 0): ?>
+              <div class="fc-rain <?= $i !== 0 ? 'has-rain' : '' ?>">💧 <?= $dPop ?>%</div>
+            <?php endif; ?>
           </div>
           <?php endforeach; ?>
         <?php else: ?>
@@ -364,7 +479,10 @@ $rfDataJson   = json_encode($rfData);
     <!-- BOTTOM GRID -->
     <div class="bottom-grid">
       <div class="w-card">
-        <div class="w-card-title">Rainfall Collection — Last 14 Days<span class="w-card-badge">mm equiv.</span></div>
+        <div class="w-card-title">
+          Rainfall Collection — Last 14 Days
+          <span class="w-card-badge">mm equiv.</span>
+        </div>
         <div class="chart-wrap"><canvas id="rainfallChart"></canvas></div>
       </div>
       <div class="w-card">
@@ -378,32 +496,87 @@ $rfDataJson   = json_encode($rfData);
             </div>
           </div>
           <div class="donut-legend">
-            <div class="dleg-item"><div class="dleg-dot" style="background:#2563eb;"></div><div><div class="dleg-val"><?= $normalPct ?>%</div><div>Normal readings</div></div></div>
-            <div class="dleg-item"><div class="dleg-dot" style="background:#93c5fd;"></div><div><div class="dleg-val"><?= $rainPct ?>%</div><div>Rain anomaly</div></div></div>
-            <div class="dleg-item"><div class="dleg-dot" style="background:#f59e0b;"></div><div><div class="dleg-val"><?= $alertPct ?>%</div><div>Alert readings</div></div></div>
+            <div class="dleg-item">
+              <div class="dleg-dot" style="background:#2563eb"></div>
+              <div><div class="dleg-val"><?= $normalPct ?>%</div><div>Normal readings</div></div>
+            </div>
+            <div class="dleg-item">
+              <div class="dleg-dot" style="background:#93c5fd"></div>
+              <div><div class="dleg-val"><?= $rainPct ?>%</div><div>Rain anomaly</div></div>
+            </div>
+            <div class="dleg-item">
+              <div class="dleg-dot" style="background:#f59e0b"></div>
+              <div><div class="dleg-val"><?= $alertPct ?>%</div><div>Alert readings</div></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /page-content -->
+</div><!-- /main-wrap -->
 
 <script>
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
-function closeSidebar()  { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
 
 Chart.defaults.font.family = "'Inter', sans-serif";
 Chart.defaults.color = '#9ca3af';
 Chart.defaults.font.size = 11;
 
+// Rainfall line chart
 const rfCtx = document.getElementById('rainfallChart').getContext('2d');
 const grad  = rfCtx.createLinearGradient(0, 0, 0, 140);
 grad.addColorStop(0, 'rgba(37,99,235,0.28)');
 grad.addColorStop(1, 'rgba(37,99,235,0)');
-new Chart(rfCtx, { type: 'line', data: { labels: <?= $rfLabelsJson ?>, datasets: [{ data: <?= $rfDataJson ?>, borderColor: '#2563eb', borderWidth: 2.5, backgroundColor: grad, fill: true, tension: 0.42, pointRadius: 3, pointBackgroundColor: '#2563eb', pointHoverRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', callbacks: { label: ctx => ` ${ctx.raw} mm` } } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 7, color: '#94a3b8' } }, y: { grid: { color: '#f3f4f6' }, beginAtZero: true, ticks: { color: '#94a3b8', callback: v => v + 'mm' } } } } });
+new Chart(rfCtx, {
+  type: 'line',
+  data: {
+    labels: <?= $rfLabelsJson ?>,
+    datasets: [{
+      data: <?= $rfDataJson ?>,
+      borderColor: '#2563eb', borderWidth: 2.5,
+      backgroundColor: grad, fill: true, tension: 0.42,
+      pointRadius: 3, pointBackgroundColor: '#2563eb', pointHoverRadius: 5
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor: '#0f172a', callbacks: { label: ctx => ` ${ctx.raw} mm` } }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { maxTicksLimit: 7, color: '#94a3b8' } },
+      y: { grid: { color: '#f3f4f6' }, beginAtZero: true, ticks: { color: '#94a3b8', callback: v => v + 'mm' } }
+    }
+  }
+});
 
-new Chart(document.getElementById('donutChart').getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [<?= $normalPct ?>, <?= $rainPct ?>, <?= $alertPct ?>], backgroundColor: ['#2563eb', '#93c5fd', '#f59e0b'], borderWidth: 0, hoverOffset: 4 }] }, options: { cutout: '72%', responsive: true, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', callbacks: { label: ctx => ` ${ctx.parsed}%` } } } } });
+// Donut chart
+new Chart(document.getElementById('donutChart').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [<?= $normalPct ?>, <?= $rainPct ?>, <?= $alertPct ?>],
+      backgroundColor: ['#2563eb', '#93c5fd', '#f59e0b'],
+      borderWidth: 0, hoverOffset: 4
+    }]
+  },
+  options: {
+    cutout: '72%', responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor: '#0f172a', callbacks: { label: ctx => ` ${ctx.parsed}%` } }
+    }
+  }
+});
 </script>
 </body>
 </html>

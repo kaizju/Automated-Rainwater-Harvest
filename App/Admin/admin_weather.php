@@ -889,7 +889,7 @@ $rfDataJson   = json_encode($rfData);
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
             <span>Weather</span>
         </a>
-        <a href="<?= BASE_URL ?>/app/admin/admin_map.php" class="nav-item active">
+        <a href="<?= BASE_URL ?>/app/admin/admin_map.php" class="nav-item">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
             <span>Tank Map</span>
         </a>

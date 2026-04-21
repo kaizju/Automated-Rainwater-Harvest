@@ -1,6 +1,6 @@
 <?php
 // ─── Database Connection ───────────────────────────────────────────────────
-require_once __DIR__ . '../../../connections/config.php';
+require_once __DIR__ . '/../../connections/config.php';
 
 // ─── Auth / Session Guard ──────────────────────────────────────────────────
 if (session_status() === PHP_SESSION_NONE) session_start();
@@ -33,6 +33,9 @@ $overallPct    = $totalCapacity > 0 ? round(($totalStored / $totalCapacity) * 10
 $onlineCount   = count(array_filter($tanks, fn($t) => strtolower($t['status_tank']) === 'active'));
 $systemStatus  = $onlineCount === count($tanks) ? 'All Online' : ($onlineCount > 0 ? 'Partial' : 'Offline');
 
+// Determine active page for nav highlighting
+$activePage = 'map';
+
 function timeAgo(?string $datetime): string {
     if (!$datetime) return 'No data';
     $diff = time() - strtotime($datetime);
@@ -52,6 +55,9 @@ function barColor(int $pct): string {
     if ($pct >= 40) return '#f59e0b';
     return '#ef4444';
 }
+
+// Avatar initials from username
+$initials = strtoupper(substr($currentUser['username'] ?? 'U', 0, 1));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -101,17 +107,52 @@ function barColor(int $pct): string {
             overflow-y: auto;
             transition: transform .25s ease;
         }
-        .logo { display: flex; align-items: center; gap: .6rem; padding: .25rem .5rem .25rem .25rem; margin-bottom: 2rem; }
-        .logo-icon { width: 34px; height: 34px; background: linear-gradient(145deg,#60a5fa,#1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0; }
-        .logo-text { font-family: 'Sora',sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; letter-spacing: -.02em; }
-        .nav-item { display: flex; align-items: center; gap: .7rem; padding: .6rem .75rem; border-radius: 9px; font-size: .875rem; font-weight: 500; color: #94a3b8; text-decoration: none; margin-bottom: .1rem; transition: background .15s, color .15s; }
+
+        /* Logo */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .25rem .5rem .25rem .25rem;
+            margin-bottom: 1.5rem;
+        }
+        .logo-icon {
+            width: 34px; height: 34px;
+            background: linear-gradient(145deg,#60a5fa,#1d4ed8);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.05rem; flex-shrink: 0;
+        }
+        .logo-text {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.1rem; font-weight: 700;
+            color: #fff; letter-spacing: -.02em;
+        }
+
+        /* Nav section label */
+        .nav-section-label {
+            font-size: .6rem; font-weight: 700;
+            letter-spacing: .1em; text-transform: uppercase;
+            color: #475569;
+            padding: .65rem .75rem .25rem;
+        }
+
+        /* Nav items */
+        .nav-item {
+            display: flex; align-items: center; gap: .7rem;
+            padding: .6rem .75rem; border-radius: 9px;
+            font-size: .875rem; font-weight: 500;
+            color: #94a3b8; text-decoration: none;
+            margin-bottom: .1rem;
+            transition: background .15s, color .15s;
+        }
         .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
         .nav-item:hover  { background: rgba(255,255,255,.06); color: #e2e8f0; }
         .nav-item.active { background: rgba(96,165,250,.15); color: #93c5fd; font-weight: 600; }
         .nav-item.logout:hover { background: rgba(239,68,68,.1); color: #fca5a5; }
+
         .sidebar-spacer { flex: 1; }
         .sidebar-bottom { border-top: 1px solid #1e293b; padding-top: 1rem; margin-top: .5rem; }
-        .nav-section-label { font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #475569; padding: .5rem .75rem .25rem; margin-top: .5rem; }
 
         /* ── Overlay (mobile sidebar backdrop) ─────────────────────── */
         .overlay {
@@ -177,8 +218,6 @@ function barColor(int $pct): string {
         .panel-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
         .panel-header h3 { font-family: 'Space Grotesk',sans-serif; font-size: 15px; font-weight: 700; color: var(--text-1); }
         .tank-count { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; color: var(--text-2); }
-
-        /* Mobile panel close button */
         .panel-close { display: none; background: none; border: none; cursor: pointer; color: var(--text-2); padding: 4px; border-radius: 6px; }
         .panel-close:hover { background: var(--bg); }
         .panel-close svg { width: 18px; height: 18px; }
@@ -220,44 +259,37 @@ function barColor(int $pct): string {
         .overall-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .overall-row span { font-size: 11px; color: var(--text-2); font-weight: 600; }
 
-        /* ── Mobile fab: open panel ─────────────────────────────────── */
+        /* ── Mobile fab ─────────────────────────────────────────────── */
         .fab-panel {
             display: none;
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: 20px; right: 20px;
             z-index: 600;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 14px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: 14px;
             padding: 11px 18px;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 13px; font-weight: 700;
             font-family: 'DM Sans', sans-serif;
             cursor: pointer;
             box-shadow: 0 4px 16px rgba(59,130,246,.45);
-            display: none;
-            align-items: center;
-            gap: 7px;
+            align-items: center; gap: 7px;
         }
         .fab-panel svg { width: 16px; height: 16px; }
 
         /* ══════════════════════════════════════════
            RESPONSIVE BREAKPOINTS
         ══════════════════════════════════════════ */
-
-        /* ── Tablet (≤ 1024px): collapse sidebar to icon rail ─────── */
         @media (max-width: 1024px) {
             :root { --sidebar-w: 64px; }
-            .logo-text, .nav-item span, .nav-section-label, .sidebar-bottom .nav-item span { display: none; }
+            .logo-text,
+            .nav-item span,
+            .nav-section-label { display: none; }
             .logo { justify-content: center; padding: .25rem; }
             .nav-item { justify-content: center; padding: .65rem; }
             .nav-item svg { width: 20px; height: 20px; }
             .search-box { min-width: 150px; }
         }
 
-        /* ── Mobile (≤ 768px): hide sidebar entirely, show hamburger ─ */
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
@@ -267,17 +299,17 @@ function barColor(int $pct): string {
                 z-index: 300;
             }
             .sidebar.open { transform: translateX(0); }
-            .logo-text, .nav-item span, .nav-section-label { display: block !important; }
+            .logo-text,
+            .nav-item span,
+            .nav-section-label { display: block !important; }
             .logo { justify-content: flex-start !important; padding: .25rem .5rem .25rem .25rem !important; }
             .nav-item { justify-content: flex-start !important; padding: .6rem .75rem !important; }
             .hamburger { display: flex; }
-            .main { margin-left: 0 !important; }
             .search-box { display: none; }
             .topbar { padding: 0 14px; }
             .topbar-left h1 { font-size: 16px; }
             .topbar-left p  { display: none; }
 
-            /* Right panel becomes a bottom sheet on mobile */
             .right-panel {
                 position: fixed;
                 bottom: 0; left: 0; right: 0;
@@ -296,7 +328,6 @@ function barColor(int $pct): string {
             .content { position: relative; }
         }
 
-        /* ── Small mobile (≤ 400px) ─────────────────────────────── */
         @media (max-width: 400px) {
             .topbar-left h1 { font-size: 14px; }
             .btn-icon { width: 32px; height: 32px; }
@@ -312,40 +343,65 @@ function barColor(int $pct): string {
 
 <div class="shell">
 
-    <!-- SIDEBAR -->
+    <!-- ═══════════════════════════════════════
+         SIDEBAR — matches user dashboard exactly
+    ═══════════════════════════════════════ -->
     <aside class="sidebar" id="sidebar">
+
         <div class="logo">
             <span class="logo-icon">💧</span>
             <span class="logo-text">EcoRain</span>
         </div>
 
-        <a href="<?php echo BASE_URL; ?>/app/user/dashboard.php" class="top-nav-logo">
-        <div class="logo-drop">💧</div>
-        <span class="logo-name">EcoRain</span>
-    </a>
-    <div class="top-nav-links">
-        <a href="<?php echo BASE_URL; ?>/app/user/dashboard.php" class="top-nav-link hide-mobile">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            Dashboard
+        <a href="<?php echo BASE_URL; ?>/App/User/dashboard.php"
+           class="nav-item <?= $activePage === 'dashboard' ? 'active' : '' ?>">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span>Dashboard</span>
         </a>
-        <a href="<?php echo BASE_URL; ?>/app/user/usage.php" class="top-nav-link hide-mobile">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Usage
+
+        <a href="<?php echo BASE_URL; ?>/App/User/usage.php"
+           class="nav-item <?= $activePage === 'usage' ? 'active' : '' ?>">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            <span>Usage Stats</span>
         </a>
-        <a href="<?php echo BASE_URL; ?>/app/user/weather.php" class="top-nav-link hide-mobile">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
-            Weather
+
+        <a href="<?php echo BASE_URL; ?>/App/User/weather.php"
+           class="nav-item <?= $activePage === 'weather' ? 'active' : '' ?>">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+            </svg>
+            <span>Weather</span>
         </a>
-        <a href="<?php echo BASE_URL; ?>/app/user/map.php" class="top-nav-link hide-mobile">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Tank Map
+
+        <a href="<?php echo BASE_URL; ?>/App/User/map.php"
+           class="nav-item <?= $activePage === 'map' ? 'active' : '' ?>">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <span>Tank Map</span>
         </a>
-        <a href="<?php echo BASE_URL; ?>/connections/signout.php" class="top-nav-link logout-link">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-            Log Out
-        </a>
+
+        <div class="sidebar-spacer"></div>
+
+        <div class="sidebar-bottom">
+            <a href="<?php echo BASE_URL; ?>/Connections/signout.php" class="nav-item logout">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                </svg>
+                <span>Log Out</span>
+            </a>
         </div>
+
     </aside>
+    <!-- END SIDEBAR -->
 
     <!-- MAIN -->
     <div class="main">
@@ -354,7 +410,11 @@ function barColor(int $pct): string {
         <header class="topbar">
             <div class="topbar-left">
                 <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
                 </button>
                 <div>
                     <h1>Tank Locations</h1>
@@ -363,15 +423,23 @@ function barColor(int $pct): string {
             </div>
             <div class="topbar-right">
                 <div class="search-box">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
                     <input type="text" placeholder="Search tanks..." id="searchInput">
                 </div>
                 <div class="btn-icon">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 01-3.46 0"/>
+                    </svg>
                     <span class="notif-dot"></span>
                 </div>
-                <a href="<?= BASE_URL ?>/App/Users/user.php" class="avatar" title="<?= htmlspecialchars($currentUser['username'] ?? 'User') ?>">
-                    <?= strtoupper(substr($currentUser['username'] ?? 'U', 0, 1)) ?>
+                <a href="<?= BASE_URL ?>/App/User/profileinfo.php"
+                   class="avatar"
+                   title="<?= htmlspecialchars($currentUser['username'] ?? 'User') ?>">
+                    <?= $initials ?>
                 </a>
             </div>
         </header>
@@ -386,7 +454,10 @@ function barColor(int $pct): string {
 
                 <!-- Mobile FAB to open tank panel -->
                 <button class="fab-panel" id="fabPanel" onclick="openPanel()">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
                     <?= count($tanks) ?> Tanks
                 </button>
             </div>
@@ -398,7 +469,10 @@ function barColor(int $pct): string {
                     <div style="display:flex;align-items:center;gap:8px">
                         <span class="tank-count"><?= count($tanks) ?> Tanks</span>
                         <button class="panel-close" onclick="closePanel()" aria-label="Close">
-                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -406,7 +480,10 @@ function barColor(int $pct): string {
                 <!-- Mobile search (inside panel) -->
                 <div style="padding:10px 12px 0;display:none" id="panelSearch">
                     <div class="search-box" style="min-width:unset;width:100%">
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
                         <input type="text" placeholder="Search tanks..." id="searchInputMobile">
                     </div>
                 </div>
@@ -424,14 +501,19 @@ function barColor(int $pct): string {
                          data-tank-id="<?= $tank['tank_id'] ?>"
                          onclick="focusTank(<?= $tank['tank_id'] ?>)">
                         <div class="card-head">
-                            <h4><span class="dot <?= $dotClass ?>"></span><?= htmlspecialchars($tank['tankname']) ?></h4>
+                            <h4>
+                                <span class="dot <?= $dotClass ?>"></span>
+                                <?= htmlspecialchars($tank['tankname']) ?>
+                            </h4>
                             <?= statusBadge($tank['status_tank']) ?>
                         </div>
                         <div class="card-location"><?= htmlspecialchars($tank['location_add']) ?></div>
                         <div>
                             <div class="fill-row">
                                 <span class="fill-pct"><?= $pct ?>%</span>
-                                <span class="fill-liters"><?= number_format($tank['current_liters']) ?>L / <?= number_format($tank['max_capacity']) ?>L</span>
+                                <span class="fill-liters">
+                                    <?= number_format($tank['current_liters']) ?>L / <?= number_format($tank['max_capacity']) ?>L
+                                </span>
                             </div>
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width:<?= $pct ?>%;background:<?= $color ?>"></div>
@@ -440,8 +522,11 @@ function barColor(int $pct): string {
                         <div class="card-updated">🕐 Updated <?= $ago ?></div>
                     </div>
                     <?php endforeach; ?>
+
                     <?php if (empty($tanks)): ?>
-                    <div style="text-align:center;padding:40px;color:var(--text-3)">No tanks found in the database.</div>
+                    <div style="text-align:center;padding:40px;color:var(--text-3)">
+                        No tanks found in the database.
+                    </div>
                     <?php endif; ?>
                 </div>
 
@@ -454,7 +539,9 @@ function barColor(int $pct): string {
                         </div>
                         <div class="fleet-stat">
                             <label>System Status</label>
-                            <div class="value"><span class="sys-dot"></span><?= $systemStatus ?></div>
+                            <div class="value">
+                                <span class="sys-dot"></span><?= $systemStatus ?>
+                            </div>
                         </div>
                     </div>
                     <div class="overall-row">
@@ -467,16 +554,22 @@ function barColor(int $pct): string {
                 </div>
             </div>
 
-        </div>
-    </div>
-</div>
+        </div><!-- /content -->
+    </div><!-- /main -->
+</div><!-- /shell -->
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const tanks = <?= json_encode(array_map(function($t) {
-    return ['id'=>$t['tank_id'],'name'=>$t['tankname'],'location'=>$t['location_add'],
-            'liters'=>$t['current_liters'],'capacity'=>$t['max_capacity'],
-            'pct'=>$t['fill_pct'],'status'=>strtolower($t['status_tank'])];
+    return [
+        'id'       => $t['tank_id'],
+        'name'     => $t['tankname'],
+        'location' => $t['location_add'],
+        'liters'   => $t['current_liters'],
+        'capacity' => $t['max_capacity'],
+        'pct'      => $t['fill_pct'],
+        'status'   => strtolower($t['status_tank'])
+    ];
 }, $tanks), JSON_UNESCAPED_UNICODE) ?>;
 
 const DEFAULT_LAT = 8.360015;
@@ -492,7 +585,8 @@ function makeIcon(color) {
     return L.divIcon({
         className: '',
         html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
-          <path fill="${color}" stroke="#fff" stroke-width="2" d="M16 2C9.37 2 4 7.37 4 14c0 9 12 24 12 24s12-15 12-24C28 7.37 22.63 2 16 2z"/>
+          <path fill="${color}" stroke="#fff" stroke-width="2"
+                d="M16 2C9.37 2 4 7.37 4 14c0 9 12 24 12 24s12-15 12-24C28 7.37 22.63 2 16 2z"/>
           <circle cx="16" cy="14" r="6" fill="rgba(255,255,255,0.85)"/>
         </svg>`,
         iconSize: [32, 40], iconAnchor: [16, 40], popupAnchor: [0, -42]
@@ -515,16 +609,23 @@ function placeMarker(tank, lat, lng) {
     const color = tank.status === 'active'
         ? (tank.pct >= 75 ? '#3b82f6' : tank.pct >= 40 ? '#f59e0b' : '#ef4444')
         : (tank.status === 'maintenance' ? '#f59e0b' : '#6b7280');
+
     const marker = L.marker([lat, lng], { icon: makeIcon(color) }).addTo(map).bindPopup(`
         <div style="font-family:'DM Sans',sans-serif;min-width:180px;">
-          <strong style="font-size:14px">${tank.name}</strong><br>
-          <span style="font-size:12px;color:#64748b">📍 ${tank.location}</span>
-          <div style="margin-top:8px;font-size:13px"><b>${tank.pct}%</b> <span style="color:#64748b">— ${Number(tank.liters).toLocaleString()}L / ${Number(tank.capacity).toLocaleString()}L</span></div>
-          <div style="margin-top:6px;height:5px;background:#e2e8f0;border-radius:99px">
-            <div style="width:${tank.pct}%;height:100%;background:${color};border-radius:99px"></div>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:#94a3b8;text-transform:capitalize">Status: ${tank.status}</div>
+            <strong style="font-size:14px">${tank.name}</strong><br>
+            <span style="font-size:12px;color:#64748b">📍 ${tank.location}</span>
+            <div style="margin-top:8px;font-size:13px">
+                <b>${tank.pct}%</b>
+                <span style="color:#64748b"> — ${Number(tank.liters).toLocaleString()}L / ${Number(tank.capacity).toLocaleString()}L</span>
+            </div>
+            <div style="margin-top:6px;height:5px;background:#e2e8f0;border-radius:99px">
+                <div style="width:${tank.pct}%;height:100%;background:${color};border-radius:99px"></div>
+            </div>
+            <div style="margin-top:6px;font-size:11px;color:#94a3b8;text-transform:capitalize">
+                Status: ${tank.status}
+            </div>
         </div>`);
+
     markerMap[tank.id] = { marker, lat, lng };
     return marker;
 }
@@ -534,7 +635,10 @@ async function loadAllTanks() {
     for (const tank of tanks) {
         let coords = null;
         if (tank.location && tank.location.trim() !== '') coords = await geocode(tank.location);
-        if (!coords) coords = { lat: DEFAULT_LAT + (Math.random()*.01-.005), lng: DEFAULT_LNG + (Math.random()*.01-.005) };
+        if (!coords) coords = {
+            lat: DEFAULT_LAT + (Math.random() * .01 - .005),
+            lng: DEFAULT_LNG + (Math.random() * .01 - .005)
+        };
         placeMarker(tank, coords.lat, coords.lng);
         bounds.push([coords.lat, coords.lng]);
     }
@@ -547,18 +651,22 @@ loadAllTanks();
 function focusTank(tankId) {
     document.querySelectorAll('.tank-card').forEach(c => c.classList.remove('selected'));
     const card = document.getElementById('card-' + tankId);
-    if (card) { card.classList.add('selected'); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    if (card) {
+        card.classList.add('selected');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
     const m = markerMap[tankId];
-    if (m) { map.flyTo([m.lat, m.lng], 17, { duration: 1 }); setTimeout(() => m.marker.openPopup(), 900); }
-    // On mobile: close panel after selecting
+    if (m) {
+        map.flyTo([m.lat, m.lng], 17, { duration: 1 });
+        setTimeout(() => m.marker.openPopup(), 900);
+    }
     if (window.innerWidth <= 768) setTimeout(() => closePanel(), 300);
 }
 
-// Search — desktop input
+// Search
 document.getElementById('searchInput').addEventListener('input', function() {
     filterTanks(this.value);
 });
-// Search — mobile input (inside panel)
 document.getElementById('searchInputMobile').addEventListener('input', function() {
     filterTanks(this.value);
 });
@@ -590,7 +698,7 @@ function closePanel() {
     document.getElementById('rightPanel').classList.remove('open');
 }
 
-// Show/hide mobile panel search on resize
+// Resize handler
 function handleResize() {
     const isMobile = window.innerWidth <= 768;
     document.getElementById('panelSearch').style.display = isMobile ? 'block' : 'none';
