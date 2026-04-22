@@ -141,7 +141,7 @@ $pct     = $maxCap > 0 ? round($threshV / $maxCap * 100) : 20;
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>EcoRain — Settings</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>/others/all.css">
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/Others/all.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Inter', sans-serif; background: #e5e7eb; color: #111827; font-size: 14px; display: flex; min-height: 100vh; overflow-x: hidden; }

@@ -147,7 +147,7 @@ function actionIconMgr(string $a): string {
   <title>EcoRain — Manager Oversight</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="<?= BASE_URL ?>/others/all.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/Others/all.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -164,12 +164,12 @@ function actionIconMgr(string $a): string {
     .sidebar { width: var(--sidebar-w); flex-shrink: 0; background: #0f172a; display: flex; flex-direction: column; padding: 1.5rem 1rem; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; transition: transform .25s ease; }
     .sidebar.open { transform: translateX(0) !important; }
     .logo { display: flex; align-items: center; gap: .6rem; padding: .25rem .5rem .25rem .25rem; margin-bottom: 2rem; }
-    .logo-icon { width: 34px; height: 34px; background: linear-gradient(145deg,#a78bfa,#7c3aed); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0; }
+    .logo-icon { width: 34px; height: 34px; background: linear-gradient(145deg,#60a5fa,#1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0; }
     .logo-text { font-family: 'Sora', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; letter-spacing: -.02em; }
     .nav-item { display: flex; align-items: center; gap: .7rem; padding: .6rem .75rem; border-radius: 9px; font-size: .875rem; font-weight: 500; color: #94a3b8; text-decoration: none; margin-bottom: .1rem; transition: background .15s, color .15s; }
     .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
     .nav-item:hover { background: rgba(255,255,255,.06); color: #e2e8f0; }
-    .nav-item.active { background: rgba(167,139,250,.15); color: #c4b5fd; font-weight: 600; }
+    .nav-item.active { background: rgba(167,139,250,.15); color: #93c5fd; font-weight: 600; }
     .nav-item.logout:hover { background: rgba(239,68,68,.1); color: #fca5a5; }
     .sidebar-spacer { flex: 1; }
     .sidebar-bottom { border-top: 1px solid #1e293b; padding-top: 1rem; margin-top: .5rem; }
@@ -192,7 +192,7 @@ function actionIconMgr(string $a): string {
     .t-btn { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 9px; background: var(--card-bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); transition: border-color .15s; }
     .t-btn:hover { border-color: var(--accent); color: var(--accent); }
     .t-btn svg { width: 15px; height: 15px; }
-    .t-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#7c3aed,#4f46e5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: .78rem; font-weight: 700; cursor: pointer; text-decoration: none; }
+    .t-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#3b82f6,#7c3aed); display: flex; align-items: center; justify-content: center; color: #fff; font-size: .78rem; font-weight: 700; cursor: pointer; text-decoration: none; }
 
     /* MAIN */
     .main { flex: 1; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; overflow-y: auto; }
