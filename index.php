@@ -256,7 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="btn-loader"></span>
                 </button>
 
-                <div class="card-footer-note">Rainwater harvesting management system</div>
+                <div class="card-footer-note">Did not have Account? <a href="<?= BASE_URL ?>/register.php">Sign Up</a></div>
 
             </form>
         </div>
