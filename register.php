@@ -365,7 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
 
                 <div class="card-footer-note">
-                    Already have an account? <a href="/index.php">Sign in</a>
+                    Already have an account? <a href="<?= BASE_URL ?>/index.php">Sign in</a>
                 </div>
 
             </form>
