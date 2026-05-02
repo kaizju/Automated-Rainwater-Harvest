@@ -85,18 +85,19 @@ function logActivity(
     global $pdo;
     if (!isset($pdo)) return;
 
-    // Map status → severity
-    $severity = match($status) {
-        'critical', 'failed' => match($action) {
-            'login_failed', 'unauthorized_access' => 'warning',
-            default => 'info'
-        },
-        'warning' => 'warning',
-        default   => 'info',
-    };
-    if (str_contains($action, 'delete') || str_contains($action, 'critical')) {
+    // FIX: Properly derive severity from action + status.
+    // The old code had a nested match that fell through incorrectly,
+    // causing page_view and normal actions to get no severity assigned.
+    $severity = 'info'; // safe default
+
+    if (str_contains($action, 'delete') || $status === 'critical') {
         $severity = 'critical';
+    } elseif ($status === 'warning' || $action === 'unauthorized_access') {
+        $severity = 'warning';
+    } elseif ($status === 'failed' || $action === 'login_failed') {
+        $severity = 'warning';
     }
+    // page_view, login, logout, edit, create, export → 'info' (default)
 
     $dbStatus = in_array($status, ['success', 'failed']) ? $status : 'success';
 
@@ -130,7 +131,7 @@ function logActivity(
 
 /**
  * Log a page navigation event to page_visits.
- * Call this at the top of every page after requireLogin().
+ * Call this at the top of EVERY page after requireLogin() / requireRole().
  *
  * @param string $pageLabel  Human-friendly label, e.g. "Admin Dashboard"
  * @param string $pageKey    Short key for the module, e.g. "dashboard"
@@ -139,7 +140,10 @@ function logPageVisit(string $pageLabel, string $pageKey = ''): void {
     global $pdo;
     if (!isset($pdo) || !isLoggedIn()) return;
 
-    $page = $_SERVER['REQUEST_URI'] ?? 'unknown';
+    // FIX: Strip query string from REQUEST_URI so ?p=2&role=admin doesn't
+    // create duplicate page_visit rows for paginated/filtered views.
+    $fullUri = $_SERVER['REQUEST_URI'] ?? 'unknown';
+    $page    = strtok($fullUri, '?'); // path only, no query string
 
     try {
         $stmt = $pdo->prepare("

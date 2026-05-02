@@ -1,6 +1,11 @@
 <?php
 require_once '../../connections/config.php';
-
+require_once '../../connections/functions.php';
+ 
+requireRole('user');
+logPageVisit('User Dashboard', 'dashboard');
+ 
+$activePage = 'dashboard';
 // ── All Tanks (aggregate) ─────────────────────────────────────────────────
 $tanksAll = $pdo->query("SELECT * FROM tank")->fetchAll(PDO::FETCH_ASSOC);
 
