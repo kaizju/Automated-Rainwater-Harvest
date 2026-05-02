@@ -1,6 +1,11 @@
 <?php
 require_once '../../connections/config.php';
+require_once '../../connections/functions.php';
 
+requireRole('admin');
+logPageVisit('Admin User Logs', 'User Logs');
+
+$activePage = 'User Logs';
 $action  = $_POST['action'] ?? '';
 $success = '';
 $error   = '';

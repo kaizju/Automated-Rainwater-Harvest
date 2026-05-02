@@ -1,6 +1,11 @@
 <?php
 require_once '../../connections/config.php';
+require_once '../../connections/functions.php';
 
+requireAnyRole(['admin', 'manager']);
+logPageVisit('Manager Dashboard', 'Dashboard');
+
+$activePage = 'Dashboard';
 // ── All Tanks (aggregate) ─────────────────────────────────────────────────
 // FIX: was $tanksAll in query but $allTanks everywhere else — unified to $allTanks
 $allTanks = $pdo->query("SELECT * FROM tank")->fetchAll(PDO::FETCH_ASSOC);

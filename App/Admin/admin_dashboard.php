@@ -1,8 +1,11 @@
 <?php
 require_once '../../connections/config.php';
+require_once '../../connections/functions.php';
 
-// FIX: $activePage was referenced in sidebar but never defined
-$activePage = 'dashboard';
+requireRole('admin');
+logPageVisit('Admin Dashboard', 'Dashboard');
+
+$activePage = 'Dashboard';
 
 // ── All Tanks (aggregate) ──────────────────────────────────────────────────
 // FIX: was LIMIT 1 (single tank) — now fetches all tanks like the manager dashboard

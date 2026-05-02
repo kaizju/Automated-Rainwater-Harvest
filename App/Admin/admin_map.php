@@ -1,6 +1,11 @@
 <?php
-// ─── Database Connection ───────────────────────────────────────────────────
-require_once __DIR__ . '../../../connections/config.php';
+require_once '../../connections/config.php';
+require_once '../../connections/functions.php';
+
+requireRole('admin');
+logPageVisit('Admin Map', 'Map');
+
+$activePage = 'Map';
 
 // ─── Auth / Session Guard ──────────────────────────────────────────────────
 if (session_status() === PHP_SESSION_NONE) session_start();

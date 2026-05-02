@@ -2,9 +2,10 @@
 require_once __DIR__ . '../../../connections/config.php';
 require_once __DIR__ . '../../../connections/functions.php';
 require_once __DIR__ . '../../../others/activity_logger.php';
-
-requireLogin();
-
+requireRole('user');
+logPageVisit('User Profile Info', 'Profile Info');
+ 
+$activePage = 'Profile Info';
 $user_id = $_SESSION['user_id'];
 $success = '';
 $error   = '';

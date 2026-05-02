@@ -1,5 +1,11 @@
 <?php
 require_once '../../connections/config.php';
+require_once '../../connections/functions.php';
+
+requireRole('admin');
+logPageVisit('Admin Settings', 'Settings');
+
+$activePage = 'Settings';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {

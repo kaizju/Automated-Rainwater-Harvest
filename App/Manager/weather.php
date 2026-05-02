@@ -1,6 +1,11 @@
 <?php
 require_once '../../connections/config.php';
+require_once '../../connections/functions.php';
 
+requireAnyRole(['admin', 'manager']);
+logPageVisit('Manager Weather Map', 'Weather Map');
+
+$activePage = 'Weather Map';
 if (session_status() === PHP_SESSION_NONE) session_start();
 if (!isset($_SESSION['user_id'])) { header('Location: ../../index.php'); exit; }
 
