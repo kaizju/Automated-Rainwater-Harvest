@@ -57,6 +57,7 @@ AUTOMATED-RAINWATER-HARVESTING/
 ├── index.js                            # Frontend JS entry (if applicable)
 ├── package.json                        # Node dependencies (if applicable)
 └── package-lock.json                   # Locked Node dependency tree
+└── register.php                        # Registration
 ```
 
 ---
