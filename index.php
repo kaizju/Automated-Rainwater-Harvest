@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         logActivity('login', 'success', 'auth', 'User logged in');
 
         switch ($user['role']) {
-            case 'admin':   redirect('/app/admin/admin_oversight.php'); break;
+            case 'admin':   redirect('/app/admin/admin_master.php'); break;
             case 'manager': redirect('/app/manager/manager.php');       break;
             case 'user':    redirect('/app/user/dashboard.php');        break;
         }
