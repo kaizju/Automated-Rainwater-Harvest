@@ -277,6 +277,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  scroll-padding-top: 0;
+  overflow-anchor: none;
 }
 
 /* SHARED CARD */
@@ -1376,26 +1378,42 @@ table.data-table tr:hover td { background: #f9fafb; }
    ============================================================ */
 
 /* Weather hero card */
+
+.main.main-weather {
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.main.main-weather .hero-card {
+  flex-shrink: 0;
+}
+/* Weather hero card — compact layout that fits without scrolling */
 .hero-card {
   background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 50%, #312e81 100%);
-  border-radius: 20px; padding: 2rem 2.25rem;
-  color: #fff; position: relative; overflow: hidden;
+  border-radius: 20px;
+  padding: 1.25rem 2rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;        /* back to hidden — clip the cloud emoji */
   box-shadow: 0 8px 32px rgba(30,58,138,.35);
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;             /* controls all spacing between sections */
 }
-.hero-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-.hero-date { font-size: .8rem; color: rgba(255,255,255,.75); font-weight: 500; margin-bottom: .25rem; }
-.hero-location { font-size: .875rem; font-weight: 600; color: rgba(255,255,255,.9); }
-.big-temp {
-  font-family: 'Sora', 'Space Grotesk', sans-serif;
-  font-size: 6rem; font-weight: 900; line-height: 1;
-  letter-spacing: -.04em; color: #fff;
-}
-.big-temp sup { font-size: 2.5rem; vertical-align: super; }
-.hero-temp-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; }
+
+.hero-top       { display: flex; justify-content: space-between; align-items: flex-start; }
+.hero-temp-row  { display: flex; align-items: flex-start; }
+.hero-pills     { display: flex; gap: .65rem; flex-wrap: wrap; }
+
+.big-temp       { font-size: 3.25rem; font-weight: 900; line-height: 1; letter-spacing: -.04em; color: #fff; }
+.big-temp sup   { font-size: 1.5rem; vertical-align: super; }
+
 .weather-desc-wrap { margin-top: .75rem; }
 .weather-desc { font-size: 1.05rem; font-weight: 600; color: rgba(255,255,255,.9); margin-bottom: .25rem; }
 .feels-like { font-size: .78rem; color: rgba(255,255,255,.65); }
-.hero-cloud { position: absolute; top: 1.25rem; right: 2rem; font-size: 5rem; opacity: .2; pointer-events: none; }
+.hero-cloud { 
+  position: absolute; top: 1.25rem; right: 2rem; font-size: 5rem; opacity: .2; pointer-events: none;
+  overflow: hidden; max-width: 100px; }
 
 .hero-pills { display: flex; gap: .75rem; flex-wrap: wrap; }
 .pill {

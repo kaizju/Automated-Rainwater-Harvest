@@ -29,6 +29,13 @@ function closeSidebar() {
   document.getElementById('overlay').classList.remove('show');
 }
 
+/* REPLACE the current scroll reset lines at the top of admin_script.js */
+requestAnimationFrame(function() {
+  window.scrollTo(0, 0);
+  document.querySelector('.main')?.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+});
 
 /* ============================================================
    SECTION: PAGE ROUTER

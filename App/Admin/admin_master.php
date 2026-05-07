@@ -703,9 +703,7 @@ if ($page === 'weather') {
 
   <!-- Shared admin stylesheet -->
   <link rel="stylesheet" href="<?= BASE_URL ?>/app/admin/admin_style.css">
-
-  <!-- Shared legacy stylesheet (kept from original) -->
-  <link rel="stylesheet" href="<?= BASE_URL ?>/others/all.css">
+    
 
 
 
@@ -939,7 +937,7 @@ if ($page === 'weather') {
      SECTION: MAIN CONTENT SWITCH
      Each case renders the full page body for that feature
      ============================================================ */ ?>
-  <main class="main">
+  <main class="main <?= $page === 'map' ? 'main-map' : '' ?>">
   <?php switch ($page):
 
 
