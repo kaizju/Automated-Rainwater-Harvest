@@ -707,6 +707,8 @@ if ($page === 'weather') {
   <!-- Shared legacy stylesheet (kept from original) -->
   <link rel="stylesheet" href="<?= BASE_URL ?>/others/all.css">
 
+
+
   <!-- Chart.js (all pages except map & userlogs) -->
   <?php if (!in_array($page, ['map'])): ?>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1144,107 +1146,103 @@ if ($page === 'weather') {
        ============================================================ */
     case 'map': ?>
 
-      </main><!-- close .main early; map uses its own full-height layout -->
-    </div><!-- close .app-body early -->
+<div style="display:flex;flex:1;overflow:hidden;height:calc(100vh - var(--topbar-h));margin:-1.5rem">
 
-    <!-- MAP CONTENT: full-height flex layout -->
-    <div style="display:flex;flex:1;overflow:hidden;height:calc(100vh - 60px)">
+  <!-- Map panel -->
+  <div class="map-panel">
+    <div class="live-badge">Live Network View</div>
+    <div id="map"></div>
+    <button class="fab-panel" id="fabPanel" onclick="openPanel()">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+      </svg>
+      <?= count($tanks) ?> Tanks
+    </button>
+  </div>
 
-      <!-- Map panel -->
-      <div class="map-panel">
-        <div class="live-badge">Live Network View</div>
-        <div id="map"></div>
-        <button class="fab-panel" id="fabPanel" onclick="openPanel()">
+  <!-- Right panel: tank list -->
+  <div class="right-panel" id="rightPanel">
+    <div class="panel-header">
+      <h3>Tank Locations</h3>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="tank-count"><?= count($tanks) ?> Tanks</span>
+        <button class="panel-close" onclick="closePanel()" aria-label="Close">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
-          <?= count($tanks) ?> Tanks
         </button>
       </div>
+    </div>
 
-      <!-- Right panel: tank list -->
-      <div class="right-panel" id="rightPanel">
-        <div class="panel-header">
-          <h3>Tank Locations</h3>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="tank-count"><?= count($tanks) ?> Tanks</span>
-            <button class="panel-close" onclick="closePanel()" aria-label="Close">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
+    <!-- Mobile search inside panel -->
+    <div style="padding:10px 12px 0;display:none" id="panelSearch">
+      <div class="search-box" style="min-width:unset;width:100%">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" placeholder="Search tanks..." id="searchInputMobile">
+      </div>
+    </div>
+
+    <div class="tank-list" id="tankList">
+      <?php foreach ($tanks as $i => $tank):
+        $pct      = (int)$tank['fill_pct'];
+        $color    = barColor($pct);
+        $s        = strtolower($tank['status_tank']);
+        $dotClass = $s === 'active' ? '' : ($s === 'maintenance' ? 'warn' : 'offline');
+        $ago      = timeAgo($tank['last_reading']);
+      ?>
+      <div class="map-tank-card <?= $i === 0 ? 'selected' : '' ?>"
+           id="card-<?= $tank['tank_id'] ?>"
+           data-tank-id="<?= $tank['tank_id'] ?>"
+           onclick="focusTank(<?= $tank['tank_id'] ?>)">
+        <div class="card-head">
+          <h4><span class="dot <?= $dotClass ?>"></span><?= htmlspecialchars($tank['tankname']) ?></h4>
+          <?= statusBadge($tank['status_tank']) ?>
+        </div>
+        <div class="card-location"><?= htmlspecialchars($tank['location_add']) ?></div>
+        <div>
+          <div class="fill-row">
+            <span class="fill-pct"><?= $pct ?>%</span>
+            <span class="fill-liters"><?= number_format($tank['current_liters']) ?>L / <?= number_format($tank['max_capacity']) ?>L</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:<?= $pct ?>%;background:<?= $color ?>"></div>
           </div>
         </div>
+        <div class="card-updated">🕐 Updated <?= $ago ?></div>
+      </div>
+      <?php endforeach; ?>
+      <?php if (empty($tanks)): ?>
+      <div style="text-align:center;padding:40px;color:var(--text-3)">No tanks found.</div>
+      <?php endif; ?>
+    </div>
 
-        <!-- Mobile search inside panel -->
-        <div style="padding:10px 12px 0;display:none" id="panelSearch">
-          <div class="search-box" style="min-width:unset;width:100%">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input type="text" placeholder="Search tanks..." id="searchInputMobile">
-          </div>
+    <!-- Fleet summary footer -->
+    <div class="fleet-summary">
+      <h5>Fleet Summary</h5>
+      <div class="fleet-grid">
+        <div class="fleet-stat">
+          <label>Total Stored</label>
+          <div class="value"><?= number_format($totalStored) ?>L</div>
         </div>
-
-        <div class="tank-list" id="tankList">
-          <?php foreach ($tanks as $i => $tank):
-            $pct      = (int)$tank['fill_pct'];
-            $color    = barColor($pct);
-            $s        = strtolower($tank['status_tank']);
-            $dotClass = $s === 'active' ? '' : ($s === 'maintenance' ? 'warn' : 'offline');
-            $ago      = timeAgo($tank['last_reading']);
-          ?>
-          <div class="map-tank-card <?= $i === 0 ? 'selected' : '' ?>"
-               id="card-<?= $tank['tank_id'] ?>"
-               data-tank-id="<?= $tank['tank_id'] ?>"
-               onclick="focusTank(<?= $tank['tank_id'] ?>)">
-            <div class="card-head">
-              <h4><span class="dot <?= $dotClass ?>"></span><?= htmlspecialchars($tank['tankname']) ?></h4>
-              <?= statusBadge($tank['status_tank']) ?>
-            </div>
-            <div class="card-location"><?= htmlspecialchars($tank['location_add']) ?></div>
-            <div>
-              <div class="fill-row">
-                <span class="fill-pct"><?= $pct ?>%</span>
-                <span class="fill-liters"><?= number_format($tank['current_liters']) ?>L / <?= number_format($tank['max_capacity']) ?>L</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width:<?= $pct ?>%;background:<?= $color ?>"></div>
-              </div>
-            </div>
-            <div class="card-updated">🕐 Updated <?= $ago ?></div>
-          </div>
-          <?php endforeach; ?>
-          <?php if (empty($tanks)): ?>
-          <div style="text-align:center;padding:40px;color:var(--text-3)">No tanks found.</div>
-          <?php endif; ?>
+        <div class="fleet-stat">
+          <label>System Status</label>
+          <div class="value"><span class="sys-dot"></span><?= $systemStatus ?></div>
         </div>
+      </div>
+      <div class="overall-row">
+        <span>Overall Capacity</span><span><?= $overallPct ?>%</span>
+      </div>
+      <div class="progress-bar" style="height:8px">
+        <div class="progress-fill" style="width:<?= $overallPct ?>%;background:var(--accent)"></div>
+      </div>
+    </div>
+  </div><!-- /right-panel -->
 
-        <!-- Fleet summary footer -->
-        <div class="fleet-summary">
-          <h5>Fleet Summary</h5>
-          <div class="fleet-grid">
-            <div class="fleet-stat">
-              <label>Total Stored</label>
-              <div class="value"><?= number_format($totalStored) ?>L</div>
-            </div>
-            <div class="fleet-stat">
-              <label>System Status</label>
-              <div class="value"><span class="sys-dot"></span><?= $systemStatus ?></div>
-            </div>
-          </div>
-          <div class="overall-row">
-            <span>Overall Capacity</span><span><?= $overallPct ?>%</span>
-          </div>
-          <div class="progress-bar" style="height:8px">
-            <div class="progress-fill" style="width:<?= $overallPct ?>%;background:var(--accent)"></div>
-          </div>
-        </div>
-      </div><!-- /right-panel -->
+</div><!-- /map content wrapper -->
 
-    </div><!-- /map content wrapper -->
-
-    <?php break; /* SECTION: MAP END */
+<?php break; /* SECTION: MAP END */
 
 
     /* ============================================================
