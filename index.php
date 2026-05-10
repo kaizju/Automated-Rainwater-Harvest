@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         switch ($user['role']) {
             case 'admin':   redirect('/app/admin/admin_master.php'); break;
-            case 'manager': redirect('/app/manager/manager.php');       break;
+            case 'manager': redirect('/app/manager/manager_master.php');       break;
             case 'user':    redirect('/app/user/dashboard.php');        break;
         }
     } else {
