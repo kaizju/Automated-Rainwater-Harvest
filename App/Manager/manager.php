@@ -8,7 +8,27 @@ logPageVisit('Manager Dashboard', 'Dashboard');
 $activePage = 'Dashboard';
 // ── All Tanks (aggregate) ─────────────────────────────────────────────────
 // FIX: was $tanksAll in query but $allTanks everywhere else — unified to $allTanks
-$allTanks = $pdo->query("SELECT * FROM tank")->fetchAll(PDO::FETCH_ASSOC);
+$allTanks = $pdo->query("
+    SELECT t.*,
+           (SELECT wlr.pct FROM water_level_readings wlr
+            WHERE wlr.tank_id = t.tank_id
+            ORDER BY wlr.recorded_at DESC LIMIT 1) AS sensor_pct,
+           (SELECT wlr.recorded_at FROM water_level_readings wlr
+            WHERE wlr.tank_id = t.tank_id
+            ORDER BY wlr.recorded_at DESC LIMIT 1) AS last_sensor_reading
+    FROM tank t
+")->fetchAll(PDO::FETCH_ASSOC);
+
+// Use sensor_pct to update current_liters display if available
+foreach ($allTanks as &$t) {
+    if ($t['sensor_pct'] !== null) {
+        $t['current_liters'] = round(($t['sensor_pct'] / 100) * $t['max_capacity']);
+    }
+}
+unset($t);
+
+// Recalculate totals with sensor data
+$totalCurrentLiters = array_sum(array_column($allTanks, 'current_liters'));
 
 $totalCurrentLiters = array_sum(array_column($allTanks, 'current_liters'));
 $totalMaxCapacity   = array_sum(array_column($allTanks, 'max_capacity'));
@@ -555,8 +575,8 @@ $initials = 'M';
                     $tColor = $tPct >= 75 ? '#3b82f6' : ($tPct >= 40 ? '#f59e0b' : '#ef4444');
                     $tS     = strtolower($t['status_tank']);
                   ?>
-                  <tr>
-                    <td style="font-weight:600;color:var(--text)"><?= htmlspecialchars($t['tankname']) ?></td>
+                  <tr data-tank-id="<?= $t['tank_id'] ?>">
+    <td style="font-weight:600;color:var(--text)"><?= htmlspecialchars($t['tankname']) ?></td>
                     <td style="color:var(--text)">
                       <div style="display:flex;align-items:center;gap:.5rem">
                         <div style="flex:1;height:5px;background:var(--border);border-radius:99px;overflow:hidden">
@@ -693,6 +713,121 @@ $initials = 'M';
     loadForecast();
   </script>
 
-  <link rel="stylesheet" href="/Others/all.css">
+ <link rel="stylesheet" href="<?= BASE_URL ?>/Others/all.css">
+
+<script>
+(function() {
+  const BASE = '<?= BASE_URL ?>';
+
+  function pctColor(p) {
+    return p >= 75 ? '#3b82f6' : p >= 40 ? '#f59e0b' : '#ef4444';
+  }
+
+  function tankBg(p) {
+    if (p < 20) return 'linear-gradient(135deg,#fee2e2,#fca5a5)';
+    if (p < 50) return 'linear-gradient(135deg,#fef9c3,#fde68a)';
+    return 'linear-gradient(135deg,#dbeafe,#93c5fd)';
+  }
+
+  async function refreshDashboard() {
+    try {
+      const res  = await fetch(`${BASE}/others/data.php?action=tank_levels&_=${Date.now()}`);
+      const data = await res.json();
+      if (!data.tanks) return;
+
+      // Recalculate totals
+     let totalLiters = 0, totalCap = 0;
+data.tanks.forEach(t => {
+    // Use sensor_pct if available (same as map page)
+    const pct    = parseFloat(t.sensor_pct ?? t.pct ?? 0);
+    const cap    = parseFloat(t.max_capacity ?? 0);
+    const liters = pct > 0 ? Math.round((pct / 100) * cap) : parseFloat(t.current_liters ?? 0);
+    t._liveLiters = liters; // store for use below
+    totalLiters += liters;
+    totalCap    += cap;
+});
+const overallPct = totalCap > 0 ? Math.round((totalLiters / totalCap) * 100 * 10) / 10 : 0;
+
+      // ── Update big tank card ──────────────────────────────────────
+      const bigPct = document.querySelector('.tank-percent-big');
+      if (bigPct) bigPct.textContent = overallPct + '%';
+
+      const bigSub = document.querySelector('.tank-liters-sub');
+      if (bigSub) bigSub.textContent = 'of ' + totalCap.toLocaleString() + 'L combined capacity';
+
+      const tankCard = document.querySelector('.tank-card');
+      if (tankCard) tankCard.style.background = tankBg(overallPct);
+
+      const tankBarFill = document.querySelector('.tank-bar-fill');
+      if (tankBarFill) {
+        tankBarFill.style.width = overallPct + '%';
+        tankBarFill.style.background = overallPct < 20 ? '#dc2626' : overallPct < 50 ? '#d97706' : '#2563eb';
+      }
+
+      const tankMeta = document.querySelectorAll('.tank-meta span');
+      if (tankMeta.length >= 2) {
+        tankMeta[0].textContent = Math.round(totalLiters).toLocaleString() + 'L stored';
+        tankMeta[1].textContent = totalCap.toLocaleString() + 'L max';
+      }
+
+      // ── Update individual tank chips ──────────────────────────────
+      const chipsRow = document.querySelector('.tank-stats-row');
+      if (chipsRow) {
+        chipsRow.innerHTML = data.tanks.map(t => {
+         const p = Math.round(parseFloat(t.sensor_pct ?? t.pct ?? 0));
+          const c = p >= 50 ? '#2563eb' : p >= 20 ? '#d97706' : '#dc2626';
+          return `<span class="tank-stat-chip">
+            <span class="chip-dot" style="background:${c}"></span>
+            ${t.tankname} ${p}%
+          </span>`;
+        }).join('');
+      }
+
+// ── Update Fleet Summary table rows ───────────────────────────
+document.querySelectorAll('.bottom-row .mini-table tbody tr[data-tank-id]').forEach(row => {
+    const tid = parseInt(row.dataset.tankId);
+    const t   = data.tanks.find(x => parseInt(x.tank_id) === tid);
+    if (!t) return;
+
+    const p     = Math.round(parseFloat(t.sensor_pct ?? t.pct ?? 0));
+    const color = p >= 75 ? '#3b82f6' : p >= 40 ? '#f59e0b' : '#ef4444';
+
+    // Fill bar
+    const bar = row.querySelector('div > div > div');
+    if (bar) { bar.style.width = p + '%'; bar.style.background = color; }
+
+    // Pct text
+    const pctSpan = row.querySelector('td:nth-child(2) span');
+    if (pctSpan) { pctSpan.textContent = p + '%'; pctSpan.style.color = 'var(--muted)'; }
+
+    // Status badge
+    const badge = row.querySelector('.badge');
+    if (badge) {
+        const s = (t.status_tank ?? '').toLowerCase();
+        badge.textContent = t.status_tank;
+        badge.style.cssText = s === 'active'
+            ? 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0'
+            : 'background:#fef2f2;color:#b91c1c;border:1px solid #fecaca';
+    }
+});
+
+// Fleet footer
+const online = data.tanks.filter(t => (t.status_tank ?? '').toLowerCase() === 'active').length;
+const footerDiv = document.querySelector('.bottom-row .card > div[style*="border-top"]');
+if (footerDiv) {
+    const spans = footerDiv.querySelectorAll('span');
+    if (spans[0]) spans[0].textContent = online + '/' + data.tanks.length + ' tanks online';
+    if (spans[1]) spans[1].textContent = Math.round(totalLiters).toLocaleString() + 'L / ' + Math.round(totalCap).toLocaleString() + 'L';
+}
+
+    } catch(e) {
+      console.warn('Dashboard refresh error:', e);
+    }
+  }
+
+  refreshDashboard();
+  setInterval(refreshDashboard, 8000);
+})();
+</script>
 </body>
 </html>

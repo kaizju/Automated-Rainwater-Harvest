@@ -422,38 +422,40 @@ function barColor(int $pct): string {
                 </div>
 
                 <div class="tank-list" id="tankList">
-                    <?php foreach ($tanks as $i => $tank):
-                        $pct      = (int)$tank['fill_pct'];
-                        $color    = barColor($pct);
-                        $s        = strtolower($tank['status_tank']);
-                        $dotClass = $s === 'active' ? '' : ($s === 'maintenance' ? 'warn' : 'offline');
-                        $ago      = timeAgo($tank['last_reading']);
-                    ?>
-                    <div class="tank-card <?= $i === 0 ? 'selected' : '' ?>"
-                         id="card-<?= $tank['tank_id'] ?>"
-                         data-tank-id="<?= $tank['tank_id'] ?>"
-                         onclick="focusTank(<?= $tank['tank_id'] ?>)">
-                        <div class="card-head">
-                            <h4><span class="dot <?= $dotClass ?>"></span><?= htmlspecialchars($tank['tankname']) ?></h4>
-                            <?= statusBadge($tank['status_tank']) ?>
-                        </div>
-                        <div class="card-location"><?= htmlspecialchars($tank['location_add']) ?></div>
-                        <div>
-                            <div class="fill-row">
-                                <span class="fill-pct"><?= $pct ?>%</span>
-                                <span class="fill-liters"><?= number_format($tank['current_liters']) ?>L / <?= number_format($tank['max_capacity']) ?>L</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width:<?= $pct ?>%;background:<?= $color ?>"></div>
-                            </div>
-                        </div>
-                        <div class="card-updated">🕐 Updated <?= $ago ?></div>
-                    </div>
-                    <?php endforeach; ?>
-                    <?php if (empty($tanks)): ?>
-                    <div style="text-align:center;padding:40px;color:var(--text-3)">No tanks found in the database.</div>
-                    <?php endif; ?>
-                </div>
+    <?php foreach ($tanks as $i => $tank):
+        $pct      = (int)$tank['fill_pct'];
+        $color    = barColor($pct);
+        $s        = strtolower($tank['status_tank']);
+        $dotClass = $s === 'active' ? '' : ($s === 'maintenance' ? 'warn' : 'offline');
+        $ago      = timeAgo($tank['last_reading']);
+    ?>
+    <div class="tank-card <?= $i === 0 ? 'selected' : '' ?>"
+         id="card-<?= $tank['tank_id'] ?>"
+         onclick="focusTank(<?= $tank['tank_id'] ?>)">
+        <div class="card-head">
+            <h4><span class="dot <?= $dotClass ?>"></span><?= htmlspecialchars($tank['tankname']) ?></h4>
+            <?= statusBadge($tank['status_tank']) ?>
+        </div>
+        <div class="card-location"><?= htmlspecialchars($tank['location_add']) ?></div>
+        <div>
+            <div class="fill-row">
+                <span class="fill-pct" id="pct-<?= $tank['tank_id'] ?>" style="color:<?= $color ?>"><?= $pct ?>%</span>
+                <span class="fill-liters" id="liters-<?= $tank['tank_id'] ?>"><?= number_format($tank['current_liters']) ?>L / <?= number_format($tank['max_capacity']) ?>L</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="bar-<?= $tank['tank_id'] ?>" style="width:<?= $pct ?>%;background:<?= $color ?>"></div>
+            </div>
+        </div>
+        <div class="card-updated">🕐 Updated <?= $ago ?></div>
+        <div id="sensor-<?= $tank['tank_id'] ?>" style="font-size:.7rem;margin-top:.3rem;color:#f59e0b">
+            <?= $tank['last_reading'] ? '📡 Live · ' . $ago : '⚠ No sensor data yet' ?>
+        </div>
+    </div>
+    <?php endforeach; ?>
+    <?php if (empty($tanks)): ?>
+    <div style="text-align:center;padding:40px;color:var(--text-3)">No tanks found.</div>
+    <?php endif; ?>
+</div>
 
                 <div class="fleet-summary">
                     <h5>Fleet Summary</h5>
@@ -479,89 +481,207 @@ function barColor(int $pct): string {
 
         </div>
     </div>
-    <!-- LIVE IoT STATUS WIDGET -->
-<div class="card" id="iot-live-card" style="border:1.5px solid #bfdbfe">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
-    <div style="display:flex;align-items:center;gap:.6rem">
-      <span style="width:9px;height:9px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 1.5s infinite"></span>
-      <span style="font-size:.875rem;font-weight:700;color:#0f172a">Live Sensor Feed</span>
-    </div>
-    <span id="iot-last-update" style="font-size:.72rem;color:#94a3b8">Connecting...</span>
-  </div>
+  </div><!-- end .right-panel -->
 
-  <div id="iot-tanks-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem">
-    <div style="color:#94a3b8;font-size:.82rem">Loading tanks...</div>
-  </div>
-</div>
+        </div><!-- end .content -->
+    </div><!-- end .main -->
+</div><!-- end .shell -->
 
-<style>
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
-.iot-tank-tile { border:1px solid #e2e8f0; border-radius:11px; padding:.9rem 1rem; background:#fff; }
-.iot-tank-name { font-size:.8rem; font-weight:700; color:#0f172a; margin-bottom:.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.iot-pct-big { font-family:'Sora',sans-serif; font-size:1.8rem; font-weight:800; line-height:1; }
-.iot-bar-bg { height:5px; background:#e2e8f0; border-radius:99px; overflow:hidden; margin:.4rem 0 .3rem; }
-.iot-bar-fill { height:100%; border-radius:99px; transition:width .8s ease; }
-.iot-meta { font-size:.68rem; color:#94a3b8; }
-.iot-no-sensor { font-size:.7rem; color:#f59e0b; margin-top:.3rem; }
-</style>
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-(function() {
-  const BASE = '<?= BASE_URL ?>';
+const tanks = <?= json_encode(array_map(function($t) {
+    return ['id'=>$t['tank_id'],'name'=>$t['tankname'],'location'=>$t['location_add'],
+            'liters'=>$t['current_liters'],'capacity'=>$t['max_capacity'],
+            'pct'=>$t['fill_pct'],'status'=>strtolower($t['status_tank']),
+            'tank_id'=>$t['tank_id']];
+}, $tanks), JSON_UNESCAPED_UNICODE) ?>;
 
-  function pctColor(p) {
-    return p >= 50 ? '#3b82f6' : p >= 20 ? '#f59e0b' : '#ef4444';
-  }
+const DEFAULT_LAT = 8.360015;
+const DEFAULT_LNG = 124.868419;
 
-  function timeAgo(dateStr) {
-    if (!dateStr) return 'No data';
-    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
-    if (diff < 10)  return 'just now';
-    if (diff < 60)  return diff + 's ago';
-    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
-    return Math.floor(diff/3600) + 'h ago';
-  }
+const map = L.map('map').setView([DEFAULT_LAT, DEFAULT_LNG], 13);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+}).addTo(map);
 
-  async function refreshTanks() {
+function makeIcon(color) {
+    return L.divIcon({
+        className: '',
+        html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
+          <path fill="${color}" stroke="#fff" stroke-width="2" d="M16 2C9.37 2 4 7.37 4 14c0 9 12 24 12 24s12-15 12-24C28 7.37 22.63 2 16 2z"/>
+          <circle cx="16" cy="14" r="6" fill="rgba(255,255,255,0.85)"/>
+        </svg>`,
+        iconSize: [32, 40], iconAnchor: [16, 40], popupAnchor: [0, -42]
+    });
+}
+
+window.markerMap = {};
+
+async function geocode(locationStr) {
     try {
-      const res  = await fetch(`${BASE}/others/data.php?action=tank_levels&_=${Date.now()}`);
-      const json = await res.json();
-      if (!json.tanks) return;
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationStr)}&format=json&limit=1`;
+        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        if (data && data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    } catch(e) { console.warn('Geocode failed for:', locationStr, e); }
+    return null;
+}
 
-      const grid = document.getElementById('iot-tanks-grid');
-      grid.innerHTML = json.tanks.map(t => {
-        const pct   = parseFloat(t.sensor_pct ?? t.pct ?? 0);
-        const color = pctColor(pct);
-        const ago   = timeAgo(t.last_reading);
-        const hasLive = t.last_reading !== null;
-        return `
-          <div class="iot-tank-tile">
-            <div class="iot-tank-name" title="${t.tankname}">${t.tankname}</div>
-            <div class="iot-pct-big" style="color:${color}">${Math.round(pct)}<span style="font-size:.9rem">%</span></div>
-            <div class="iot-bar-bg">
-              <div class="iot-bar-fill" style="width:${pct}%;background:${color}"></div>
-            </div>
-            <div class="iot-meta">${Number(t.current_liters).toLocaleString()}L / ${Number(t.max_capacity).toLocaleString()}L</div>
-            ${hasLive
-              ? `<div class="iot-meta" style="color:#16a34a;margin-top:.2rem">📡 ${ago}</div>`
-              : `<div class="iot-no-sensor">⚠ No sensor data yet</div>`
-            }
-          </div>`;
-      }).join('');
+function pctColor(p) {
+    return p >= 75 ? '#3b82f6' : p >= 40 ? '#f59e0b' : '#ef4444';
+}
 
-      document.getElementById('iot-last-update').textContent =
-        'Updated ' + new Date().toLocaleTimeString();
+function placeMarker(tank, lat, lng) {
+    const color = tank.status === 'active'
+        ? pctColor(tank.pct)
+        : (tank.status === 'maintenance' ? '#f59e0b' : '#6b7280');
+    const marker = L.marker([lat, lng], { icon: makeIcon(color) })
+        .addTo(map)
+        .bindPopup(buildPopup(tank, color));
+    window.markerMap[tank.id] = { marker, lat, lng };
+    return marker;
+}
 
-    } catch(e) {
-      document.getElementById('iot-last-update').textContent = 'Fetch error';
+function buildPopup(tank, color) {
+    return `<div style="font-family:'DM Sans',sans-serif;min-width:180px;">
+      <strong style="font-size:14px">${tank.name}</strong><br>
+      <span style="font-size:12px;color:#64748b">📍 ${tank.location}</span>
+      <div style="margin-top:8px;font-size:13px">
+        <b id="popup-pct-${tank.id}">${Math.round(tank.pct)}%</b>
+        <span style="color:#64748b"> — ${Number(tank.liters).toLocaleString()}L / ${Number(tank.capacity).toLocaleString()}L</span>
+      </div>
+      <div style="margin-top:6px;height:5px;background:#e2e8f0;border-radius:99px">
+        <div style="width:${tank.pct}%;height:100%;background:${color};border-radius:99px"></div>
+      </div>
+      <div style="margin-top:6px;font-size:11px;color:#94a3b8;text-transform:capitalize">Status: ${tank.status}</div>
+    </div>`;
+}
+
+async function loadAllTanks() {
+    const bounds = [];
+    for (const tank of tanks) {
+        let coords = null;
+        if (tank.location && tank.location.trim() !== '') coords = await geocode(tank.location);
+        if (!coords) coords = { lat: DEFAULT_LAT + (Math.random()*.01-.005), lng: DEFAULT_LNG + (Math.random()*.01-.005) };
+        placeMarker(tank, coords.lat, coords.lng);
+        bounds.push([coords.lat, coords.lng]);
     }
-  }
+    if (bounds.length > 0) map.fitBounds(bounds, { padding: [40, 40] });
+    if (tanks.length > 0) setTimeout(() => focusTank(tanks[0].id), 600);
+}
 
-  refreshTanks();
-  setInterval(refreshTanks, 8000); // refresh every 8 seconds
-})();
+loadAllTanks();
+
+function focusTank(tankId) {
+    document.querySelectorAll('.tank-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById('card-' + tankId);
+    if (card) { card.classList.add('selected'); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    const m = window.markerMap[tankId];
+    if (m) { map.flyTo([m.lat, m.lng], 17, { duration: 1 }); setTimeout(() => m.marker.openPopup(), 900); }
+    if (window.innerWidth <= 768) setTimeout(() => closePanel(), 300);
+}
+
+// ── Live IoT refresh — updates the RIGHT PANEL cards directly ──────────
+function timeAgoJs(dateStr) {
+    if (!dateStr) return null;
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    if (diff < 10)   return 'just now';
+    if (diff < 60)   return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    return Math.floor(diff / 3600) + 'h ago';
+}
+
+async function refreshLive() {
+    try {
+        const res  = await fetch(`<?= BASE_URL ?>/others/data.php?action=tank_levels&_=${Date.now()}`);
+        const data = await res.json();
+        if (!data.tanks) return;
+
+        data.tanks.forEach(t => {
+            const tid    = t.tank_id;
+            const pct    = parseFloat(t.sensor_pct ?? t.pct ?? 0);
+            const liters = parseFloat(t.sensor_liters ?? t.current_liters ?? 0);
+            const color  = pctColor(pct);
+            const ago    = timeAgoJs(t.last_reading);
+
+            // Update card fill-pct
+            const pctEl = document.getElementById('pct-' + tid);
+            if (pctEl) { pctEl.textContent = Math.round(pct) + '%'; pctEl.style.color = color; }
+
+            // Update card liters
+            const litEl = document.getElementById('liters-' + tid);
+            if (litEl) litEl.textContent = Number(liters).toLocaleString() + 'L / ' + Number(t.max_capacity).toLocaleString() + 'L';
+
+            // Update progress bar
+            const barEl = document.getElementById('bar-' + tid);
+            if (barEl) { barEl.style.width = pct + '%'; barEl.style.background = color; }
+
+            // Update live status line
+            const senEl = document.getElementById('sensor-' + tid);
+            if (senEl) {
+                senEl.textContent  = ago ? '📡 Live · ' + ago : '⚠ No sensor data yet';
+                senEl.style.color  = ago ? '#16a34a' : '#f59e0b';
+            }
+
+            // Update map marker color + popup
+            if (window.markerMap && window.markerMap[tid]) {
+                const m = window.markerMap[tid];
+                m.marker.setIcon(makeIcon(color));
+                m.marker.setPopupContent(`
+                    <div style="font-family:'DM Sans',sans-serif;min-width:180px;">
+                      <strong style="font-size:14px">${t.tankname}</strong><br>
+                      <span style="font-size:12px;color:#64748b">📍 ${t.location_add ?? ''}</span>
+                      <div style="margin-top:8px;font-size:13px">
+                        <b>${Math.round(pct)}%</b>
+                        <span style="color:#64748b"> — ${Number(liters).toLocaleString()}L / ${Number(t.max_capacity).toLocaleString()}L</span>
+                      </div>
+                      <div style="margin-top:6px;height:5px;background:#e2e8f0;border-radius:99px">
+                        <div style="width:${pct}%;height:100%;background:${color};border-radius:99px"></div>
+                      </div>
+                      <div style="margin-top:6px;font-size:11px;color:#94a3b8">Status: ${t.status_tank ?? 'active'}</div>
+                      ${ago ? `<div style="margin-top:4px;font-size:11px;color:#16a34a">📡 Live · ${ago}</div>` : ''}
+                    </div>`);
+            }
+        });
+
+        // Update fleet total
+        const total = data.tanks.reduce((s, t) => s + parseFloat(t.current_liters ?? 0), 0);
+        const fleetEl = document.querySelector('.fleet-stat .value');
+        if (fleetEl) fleetEl.textContent = Number(total).toLocaleString() + 'L';
+
+    } catch(e) { console.warn('Live refresh error:', e); }
+}
+
+refreshLive();
+setInterval(refreshLive, 8000);
+
+// ── Search ─────────────────────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', function() { filterTanks(this.value); });
+document.getElementById('searchInputMobile').addEventListener('input', function() { filterTanks(this.value); });
+function filterTanks(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('.tank-card').forEach(card => {
+        const name = card.querySelector('h4').textContent.toLowerCase();
+        const loc  = card.querySelector('.card-location').textContent.toLowerCase();
+        card.style.display = (name.includes(q) || loc.includes(q)) ? '' : 'none';
+    });
+}
+
+// ── Sidebar + panel toggles ────────────────────────────────────────────
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
+function closeSidebar()  { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+function openPanel()  { document.getElementById('rightPanel').classList.add('open'); document.getElementById('panelSearch').style.display = 'block'; }
+function closePanel() { document.getElementById('rightPanel').classList.remove('open'); }
+function handleResize() {
+    const isMobile = window.innerWidth <= 768;
+    document.getElementById('panelSearch').style.display = isMobile ? 'block' : 'none';
+    if (!isMobile) { document.getElementById('rightPanel').classList.remove('open'); document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+}
+window.addEventListener('resize', handleResize);
 </script>
-</div>
+</body>
+</html>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>

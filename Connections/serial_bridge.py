@@ -2,10 +2,10 @@
 import serial, requests, time, json, sys
 
 CONFIG = {
-    "port":    "COM3",          # ← change to your Arduino port
+    "port":    "COM3",
     "baud":    9600,
     "api_url": "http://localhost/Automated-RainWater-Harvest/others/store.php",
-    "api_key": "ecr_PASTE_YOUR_KEY_HERE",   # ← paste from sensor card
+    "api_key": "demo_sensor_key_001",  # ← use this exact key from your DB
 }
 
 def connect():
