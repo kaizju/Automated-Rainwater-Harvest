@@ -600,6 +600,88 @@ $initials = 'AD';
       </div><!-- /bottom-row -->
 
     </main>
+    <!-- LIVE IoT STATUS WIDGET -->
+<div class="card" id="iot-live-card" style="border:1.5px solid #bfdbfe">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <span style="width:9px;height:9px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 1.5s infinite"></span>
+      <span style="font-size:.875rem;font-weight:700;color:#0f172a">Live Sensor Feed</span>
+    </div>
+    <span id="iot-last-update" style="font-size:.72rem;color:#94a3b8">Connecting...</span>
+  </div>
+
+  <div id="iot-tanks-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem">
+    <div style="color:#94a3b8;font-size:.82rem">Loading tanks...</div>
+  </div>
+</div>
+
+<style>
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+.iot-tank-tile { border:1px solid #e2e8f0; border-radius:11px; padding:.9rem 1rem; background:#fff; }
+.iot-tank-name { font-size:.8rem; font-weight:700; color:#0f172a; margin-bottom:.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.iot-pct-big { font-family:'Sora',sans-serif; font-size:1.8rem; font-weight:800; line-height:1; }
+.iot-bar-bg { height:5px; background:#e2e8f0; border-radius:99px; overflow:hidden; margin:.4rem 0 .3rem; }
+.iot-bar-fill { height:100%; border-radius:99px; transition:width .8s ease; }
+.iot-meta { font-size:.68rem; color:#94a3b8; }
+.iot-no-sensor { font-size:.7rem; color:#f59e0b; margin-top:.3rem; }
+</style>
+
+<script>
+(function() {
+  const BASE = '<?= BASE_URL ?>';
+
+  function pctColor(p) {
+    return p >= 50 ? '#3b82f6' : p >= 20 ? '#f59e0b' : '#ef4444';
+  }
+
+  function timeAgo(dateStr) {
+    if (!dateStr) return 'No data';
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    if (diff < 10)  return 'just now';
+    if (diff < 60)  return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+    return Math.floor(diff/3600) + 'h ago';
+  }
+
+  async function refreshTanks() {
+    try {
+      const res  = await fetch(`${BASE}/others/data.php?action=tank_levels&_=${Date.now()}`);
+      const json = await res.json();
+      if (!json.tanks) return;
+
+      const grid = document.getElementById('iot-tanks-grid');
+      grid.innerHTML = json.tanks.map(t => {
+        const pct   = parseFloat(t.sensor_pct ?? t.pct ?? 0);
+        const color = pctColor(pct);
+        const ago   = timeAgo(t.last_reading);
+        const hasLive = t.last_reading !== null;
+        return `
+          <div class="iot-tank-tile">
+            <div class="iot-tank-name" title="${t.tankname}">${t.tankname}</div>
+            <div class="iot-pct-big" style="color:${color}">${Math.round(pct)}<span style="font-size:.9rem">%</span></div>
+            <div class="iot-bar-bg">
+              <div class="iot-bar-fill" style="width:${pct}%;background:${color}"></div>
+            </div>
+            <div class="iot-meta">${Number(t.current_liters).toLocaleString()}L / ${Number(t.max_capacity).toLocaleString()}L</div>
+            ${hasLive
+              ? `<div class="iot-meta" style="color:#16a34a;margin-top:.2rem">📡 ${ago}</div>`
+              : `<div class="iot-no-sensor">⚠ No sensor data yet</div>`
+            }
+          </div>`;
+      }).join('');
+
+      document.getElementById('iot-last-update').textContent =
+        'Updated ' + new Date().toLocaleTimeString();
+
+    } catch(e) {
+      document.getElementById('iot-last-update').textContent = 'Fetch error';
+    }
+  }
+
+  refreshTanks();
+  setInterval(refreshTanks, 8000); // refresh every 8 seconds
+})();
+</script>
   </div>
 
   <script>

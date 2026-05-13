@@ -210,6 +210,18 @@ CREATE TABLE IF NOT EXISTS system_settings (
     setting_value TEXT         NOT NULL
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS water_level_readings (
+    reading_id   INT AUTO_INCREMENT PRIMARY KEY,
+    sensor_id    INT NOT NULL,
+    tank_id      INT,
+    distance_cm  FLOAT,
+    pct          FLOAT,
+    liters       FLOAT,
+    recorded_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_sensor (sensor_id),
+    INDEX idx_tank   (tank_id),
+    INDEX idx_time   (recorded_at)
+) ENGINE=InnoDB;
 -- ============================================================
 --  SEED DATA  (order mirrors FK dependencies)
 -- ============================================================
