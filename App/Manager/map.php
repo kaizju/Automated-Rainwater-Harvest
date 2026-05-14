@@ -552,7 +552,9 @@ async function refreshLive() {
 }
 
 refreshLive();
-setInterval(refreshLive, 8000);
+setInterval(refreshLive, 2000
+    
+);
 
 // ── Search ─────────────────────────────────────────────────────────────
 function filterTanks(q) {

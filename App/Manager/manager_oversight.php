@@ -238,7 +238,7 @@ function actionIconMgr(string $a): string {
 
     // Run immediately then every 8 seconds
     refreshOversight();
-    setInterval(refreshOversight, 8000);
+    setInterval(refreshOversight, 2000);
 })();
 </script>
   <style>

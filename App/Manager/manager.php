@@ -826,7 +826,7 @@ if (footerDiv) {
   }
 
   refreshDashboard();
-  setInterval(refreshDashboard, 8000);
+  setInterval(refreshDashboard, 2000);
 })();
 </script>
 </body>
