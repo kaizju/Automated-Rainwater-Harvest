@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_sensor'])) {
       throw new Exception("Serial port \"$serialPort\" is already registered.");
     }
 
-    $apiKey       = 'ecr_' . bin2hex(random_bytes(16));
+    $apiKey = 'ecr_' . bin2hex(random_bytes(16));
     $sensorStatus = $assignTankId ? 'assigned' : 'available';
 
     $pdo->prepare("
@@ -114,27 +114,76 @@ function cfg(array $rows, string $key, $default)
 }
 
 /* ── Handle Delete Tank POST ──────────────────────────────────────────── */
+/* ── Handle Delete Tank POST ──────────────────────────────────── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_tank'])) {
-  try {
-    $tankId = (int)($_POST['tank_id'] ?? 0);
-    if ($tankId <= 0) throw new Exception('Invalid tank ID.');
+    try {
+        $tankId = (int)($_POST['tank_id'] ?? 0);
+        if ($tankId <= 0) throw new Exception('Invalid tank ID.');
 
-    $stmt = $pdo->prepare("DELETE FROM tank WHERE tank_id = ?");
-    $stmt->execute([$tankId]);
+        // Unassign sensor before deleting tank
+       // When deleting a tank, keep the sensor in 'available' pool
+// but also preserve its api_key so it can be reassigned immediately
+$pdo->prepare("
+    UPDATE sensors 
+    SET tank_id = NULL, sensor_status = 'available' 
+    WHERE tank_id = ?
+")->execute([$tankId]);
 
-    if ($stmt->rowCount() === 0) throw new Exception('Tank not found or already deleted.');
+// Also clean up old water_level_readings for this tank
+// so sensor_pct doesn't ghost the old tank_id
+// (optional but prevents stale data confusion in data.php)
+$pdo->prepare("
+    DELETE FROM water_level_readings WHERE tank_id = ?
+")->execute([$tankId]);
 
-    $pdo->prepare("INSERT INTO user_activity_logs (user_id, email, role, action, status, ip_address)
-                       VALUES (?, ?, ?, 'delete_tank', 'success', ?)")
-      ->execute([$_SESSION['user_id'], $_SESSION['email'] ?? '', $_SESSION['role'] ?? 'manager', $_SERVER['REMOTE_ADDR'] ?? '']);
+        $stmt = $pdo->prepare("DELETE FROM tank WHERE tank_id = ?");
+        $stmt->execute([$tankId]);
 
-    $success  = 'Tank deleted successfully.';
-    $allTanks = $pdo->query("SELECT tank_id, tankname, location_add, status_tank FROM tank ORDER BY tank_id ASC")->fetchAll(PDO::FETCH_ASSOC);
-  } catch (Exception $e) {
-    $error = $e->getMessage();
-  }
+        if ($stmt->rowCount() === 0) throw new Exception('Tank not found or already deleted.');
+
+        $success  = 'Tank deleted. <a href="' . BASE_URL . '/app/shared/sensor_register.php" style="color:#2563eb;font-weight:600">→ Reassign the sensor to a new tank</a>';
+        $allTanks = $pdo->query("SELECT tank_id, tankname, location_add, status_tank FROM tank ORDER BY tank_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+    }
+}
+/* ── Handle: Assign Sensor to Tank POST ──────────────────────── */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_sensor_tank'])) {
+    try {
+        $sensorId = (int)($_POST['sensor_id'] ?? 0);
+        $tankId   = (int)($_POST['tank_id']   ?? 0);
+        if (!$sensorId || !$tankId) throw new Exception('Invalid sensor or tank.');
+
+       // This UNassigns OTHER sensors from the tank but keeps THIS sensor unassigned:
+$pdo->prepare("
+    UPDATE sensors SET tank_id = NULL, sensor_status = 'available'
+    WHERE tank_id = ? AND sensor_id != ?
+")->execute([$tankId, $sensorId]);
+
+// Then assigns THIS sensor:
+$pdo->prepare("
+    UPDATE sensors SET tank_id = ?, sensor_status = 'assigned'
+    WHERE sensor_id = ?
+")->execute([$tankId, $sensorId]);
+        $pdo->prepare("
+            INSERT INTO sensor_assignments (sensor_id, tank_id, assigned_by, action)
+            VALUES (?, ?, ?, 'assigned')
+        ")->execute([$sensorId, $tankId, $_SESSION['user_id']]);
+
+        $success = 'Sensor assigned to tank successfully.';
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+    }
 }
 
+/* ── Fetch sensors for display ────────────────────────────────── */
+$allSensors = $pdo->query("
+    SELECT s.*, t.tankname
+    FROM sensors s
+    LEFT JOIN tank t ON s.tank_id = t.tank_id
+    ORDER BY s.sensor_status, s.registered_at DESC
+")->fetchAll(PDO::FETCH_ASSOC);
 /* ── Handle Add Tank POST ─────────────────────────────────────────────── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tank'])) {
     try {
@@ -200,12 +249,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tank'])) {
 
         // Reassign sensor
         if ($assignSensor) {
-            // Free old sensor on this tank
-            $pdo->prepare("UPDATE sensors SET tank_id=NULL, sensor_status='available' WHERE tank_id=? AND sensor_id != ?")
-                ->execute([$tankId, $assignSensor]);
-            // Free this sensor from any other tank
-            $pdo->prepare("UPDATE sensors SET tank_id=NULL, sensor_status='available' WHERE sensor_id=?")
-                ->execute([$assignSensor]);
+    $pdo->prepare("UPDATE sensors SET tank_id = NULL, sensor_status = 'available' WHERE sensor_id = ?")
+        ->execute([$assignSensor]);
+    $pdo->prepare("UPDATE sensors SET tank_id = ?, sensor_status = 'assigned' WHERE sensor_id = ?")
+        ->execute([$newTankId, $assignSensor]);
             // Assign
             $pdo->prepare("UPDATE sensors SET tank_id=?, sensor_status='assigned' WHERE sensor_id=?")
                 ->execute([$tankId, $assignSensor]);
@@ -1833,7 +1880,97 @@ $pct     = $maxCap > 0 ? round($threshV / $maxCap * 100) : 20;
       <?php endif; ?>
 
       <form method="POST">
+<!-- SENSOR MANAGEMENT -->
+<div class="s-card">
+    <div class="s-card-head">
+        <div class="s-card-icon icon-blue">📡</div>
+        <div>
+            <div class="s-card-title">Sensor Management</div>
+            <div class="s-card-sub">Assign HC-SR04 sensors to tanks</div>
+        </div>
+    </div>
+    <div class="s-card-body">
 
+        <?php if (empty($allSensors)): ?>
+            <p style="color:#9ca3af;font-size:.84rem">No sensors registered yet.</p>
+        <?php else: foreach ($allSensors as $sen): ?>
+
+        <div style="border:1px solid #e5e7eb;border-radius:10px;padding:1rem;margin-bottom:.75rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
+                <div>
+                    <div style="font-size:.875rem;font-weight:700;color:#111827">
+                        <?= htmlspecialchars($sen['model']) ?>
+                        <span style="font-family:'DM Mono',monospace;font-size:.72rem;color:#6b7280;margin-left:.35rem">
+                            <?= htmlspecialchars($sen['serial_port'] ?? '—') ?>
+                        </span>
+                    </div>
+                    <div style="font-size:.72rem;color:#9ca3af;margin-top:.15rem">
+                        Sensor #<?= $sen['sensor_id'] ?>
+                        <?php if ($sen['tankname']): ?>
+                            · Assigned to <strong style="color:#2563eb"><?= htmlspecialchars($sen['tankname']) ?></strong>
+                        <?php else: ?>
+                            · <span style="color:#f59e0b">Not assigned</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <span style="padding:.2rem .65rem;border-radius:20px;font-size:.7rem;font-weight:700;
+                    <?= $sen['sensor_status'] === 'assigned'
+                        ? 'background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe'
+                        : 'background:#ecfdf5;color:#059669;border:1px solid #a7f3d0' ?>">
+                    <?= ucfirst($sen['sensor_status']) ?>
+                </span>
+            </div>
+
+            <!-- API Key -->
+            <div style="background:#0f172a;color:#93c5fd;font-family:'DM Mono',monospace;
+                        font-size:.72rem;padding:.4rem .75rem;border-radius:6px;
+                        display:flex;align-items:center;justify-content:space-between;
+                        margin-bottom:.75rem">
+                <span id="skey-<?= $sen['sensor_id'] ?>"><?= htmlspecialchars($sen['api_key'] ?? '—') ?></span>
+                <button type="button" onclick="
+                    navigator.clipboard.writeText(document.getElementById('skey-<?= $sen['sensor_id'] ?>').textContent);
+                    this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)
+                " style="background:none;border:none;color:#60a5fa;cursor:pointer;font-size:.72rem;
+                          font-family:inherit;padding:.1rem .3rem">Copy</button>
+            </div>
+
+            <!-- Assign to tank form -->
+            <form method="POST" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                <input type="hidden" name="assign_sensor_tank" value="1">
+                <input type="hidden" name="sensor_id" value="<?= $sen['sensor_id'] ?>">
+                <select name="tank_id" class="f-select" style="flex:1;min-width:160px">
+                    <option value="">— Select tank —</option>
+                    <?php foreach ($allTanks as $tk): ?>
+                        <option value="<?= $tk['tank_id'] ?>"
+                            <?= $sen['tank_id'] == $tk['tank_id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($tk['tankname']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="submit" class="btn-save" style="padding:.5rem 1rem;font-size:.8rem">
+                    Assign
+                </button>
+            </form>
+        </div>
+
+        <?php endforeach; endif; ?>
+
+        <!-- serial_bridge.py guide -->
+        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:.85rem 1rem;margin-top:.5rem">
+            <div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:.35rem">
+                🔧 serial_bridge.py CONFIG
+            </div>
+            <pre style="background:#0f172a;color:#93c5fd;padding:.75rem;border-radius:6px;
+                        font-size:.72rem;overflow-x:auto;margin:0">CONFIG = {
+    "port":    "COM3",
+    "baud":    9600,
+    "api_url": "http://localhost/Automated-RainWater-Harvest/others/store.php",
+    "api_key": "← copy key above",
+}</pre>
+        </div>
+
+    </div>
+</div>
         <!-- TANK CONFIGURATION -->
         <div class="s-card">
           <div class="s-card-head">

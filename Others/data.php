@@ -1,5 +1,6 @@
 <?php
 // others/data.php — serves live JSON to dashboards
+date_default_timezone_set('Asia/Manila');
 require_once '../connections/config.php';
 
 header('Content-Type: application/json');
@@ -18,14 +19,18 @@ switch ($action) {
                 t.max_capacity,
                 t.status_tank,
                 ROUND((t.current_liters / NULLIF(t.max_capacity,0)) * 100, 1) AS pct,
-                (SELECT wlr.pct
-                 FROM water_level_readings wlr
-                 WHERE wlr.tank_id = t.tank_id
-                 ORDER BY wlr.recorded_at DESC LIMIT 1) AS sensor_pct,
-                (SELECT wlr.volume_l
-                 FROM water_level_readings wlr
-                 WHERE wlr.tank_id = t.tank_id
-                 ORDER BY wlr.recorded_at DESC LIMIT 1) AS sensor_liters,
+                COALESCE(
+                    (SELECT wlr.pct FROM water_level_readings wlr
+                     WHERE wlr.tank_id = t.tank_id
+                     ORDER BY wlr.recorded_at DESC LIMIT 1),
+                    ROUND((t.current_liters / NULLIF(t.max_capacity,0)) * 100, 1)
+                ) AS sensor_pct,
+                COALESCE(
+                    (SELECT wlr.volume_l FROM water_level_readings wlr
+                     WHERE wlr.tank_id = t.tank_id
+                     ORDER BY wlr.recorded_at DESC LIMIT 1),
+                    t.current_liters
+                ) AS sensor_liters,
                 (SELECT wlr.status
                  FROM water_level_readings wlr
                  WHERE wlr.tank_id = t.tank_id

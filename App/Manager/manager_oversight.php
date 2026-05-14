@@ -1,7 +1,7 @@
 <?php
 require_once '../../connections/config.php';
 require_once '../../connections/functions.php';
-
+date_default_timezone_set('Asia/Manila');
 requireAnyRole(['admin', 'manager']);
 logPageVisit('Manager Oversight', 'oversight');
 
@@ -67,9 +67,29 @@ $logs = $logStmt->fetchAll(PDO::FETCH_ASSOC);
 // ── Tank-specific activity ────────────────────────────────────────────────────
 $tankActivity = $pdo->query("
     SELECT t.tankname, t.status_tank, t.current_liters, t.max_capacity,
-           (SELECT COUNT(*) FROM water_usage wu WHERE wu.tank_id=t.tank_id AND DATE(wu.recorded_at)=CURDATE()) AS usage_events,
-           (SELECT COALESCE(SUM(wu2.usage_liters),0) FROM water_usage wu2 WHERE wu2.tank_id=t.tank_id AND DATE(wu2.recorded_at)=CURDATE()) AS today_liters,
-           (SELECT COUNT(*) FROM sensor_readings sr JOIN sensors s ON sr.sensor_id=s.sensor_id WHERE s.tank_id=t.tank_id AND sr.anomaly != 'None' AND DATE(sr.recorded_at)=CURDATE()) AS anomaly_count
+           (SELECT COUNT(*) FROM water_usage wu 
+            WHERE wu.tank_id=t.tank_id 
+            AND DATE(wu.recorded_at)=CURDATE()) AS usage_events,
+           (SELECT COALESCE(SUM(wu2.usage_liters),0) FROM water_usage wu2 
+            WHERE wu2.tank_id=t.tank_id 
+            AND DATE(wu2.recorded_at)=CURDATE()) AS today_liters,
+           (SELECT COUNT(*) FROM sensor_readings sr 
+            JOIN sensors s ON sr.sensor_id=s.sensor_id 
+            WHERE s.tank_id=t.tank_id 
+            AND sr.anomaly != 'None' 
+            AND DATE(sr.recorded_at)=CURDATE()) AS anomaly_count,
+           COALESCE(
+               (SELECT wlr.pct FROM water_level_readings wlr
+                WHERE wlr.tank_id = t.tank_id
+                ORDER BY wlr.recorded_at DESC LIMIT 1),
+               ROUND((t.current_liters / NULLIF(t.max_capacity,0)) * 100, 1)
+           ) AS live_pct,
+           COALESCE(
+               (SELECT wlr.volume_l FROM water_level_readings wlr
+                WHERE wlr.tank_id = t.tank_id
+                ORDER BY wlr.recorded_at DESC LIMIT 1),
+               t.current_liters
+           ) AS live_liters
     FROM tank t ORDER BY t.tankname
 ")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -148,6 +168,79 @@ function actionIconMgr(string $a): string {
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="<?= BASE_URL ?>/Others/all.css">
+  <script>
+(function() {
+    const BASE = '<?= BASE_URL ?>';
+
+    function pctColor(p) {
+        return p >= 75 ? '#3b82f6' : p >= 40 ? '#f59e0b' : '#ef4444';
+    }
+
+    async function refreshOversight() {
+        try {
+            const res  = await fetch(`${BASE}/others/data.php?action=tank_levels&_=${Date.now()}`);
+            const data = await res.json();
+            if (!data.tanks) return;
+
+            let totalLiters = 0, totalCap = 0;
+            let onlineCount = 0;
+
+            data.tanks.forEach(t => {
+                const pct    = parseFloat(t.sensor_pct ?? t.pct ?? 0);
+                const cap    = parseFloat(t.max_capacity ?? 0);
+                const liters = pct > 0 ? Math.round((pct / 100) * cap) : parseFloat(t.current_liters ?? 0);
+                totalLiters += liters;
+                totalCap    += cap;
+                if ((t.status_tank ?? '').toLowerCase() === 'active') onlineCount++;
+
+                // Update each tank card by name match
+                document.querySelectorAll('.tank-item').forEach(card => {
+                    const nameEl = card.querySelector('.tank-item-name');
+                    if (!nameEl) return;
+                    if (nameEl.textContent.trim() !== t.tankname.trim()) return;
+
+                    const color = pctColor(pct);
+
+                    // Percentage text
+                    const pctEl = card.querySelector('span[style*="font-size:.7rem"]');
+                    if (pctEl) {
+                        pctEl.textContent = Math.round(pct) + '%';
+                        pctEl.style.color = color;
+                    }
+
+                    // Fill bar
+                    const barInner = card.querySelector('.tank-fill-inner');
+                    if (barInner) {
+                        barInner.style.width      = Math.round(pct) + '%';
+                        barInner.style.background = color;
+                    }
+
+                    // Liters text (first span in tank-item-meta)
+                    const metaSpans = card.querySelectorAll('.tank-item-meta span');
+                    if (metaSpans[0]) {
+                        metaSpans[0].textContent = liters.toLocaleString() + 'L / ' + cap.toLocaleString() + 'L';
+                    }
+                });
+            });
+
+            // Update stat cards
+            const statNums = document.querySelectorAll('.stat-num');
+
+            // Tanks online (first stat card)
+            if (statNums[0]) {
+                statNums[0].textContent = onlineCount + '/<?= $tankCount ?>';
+            }
+
+        } catch(e) {
+            console.warn('Oversight refresh error:', e);
+        }
+    }
+
+    // Run immediately then every 8 seconds
+    refreshOversight();
+    setInterval(refreshOversight, 8000);
+})();
+</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -366,9 +459,9 @@ function actionIconMgr(string $a): string {
         </div>
         <div class="tank-grid">
           <?php foreach ($tankActivity as $t):
-            $pct   = $t['max_capacity'] > 0 ? round(($t['current_liters']/$t['max_capacity'])*100) : 0;
-            $color = $pct >= 75 ? '#3b82f6' : ($pct >= 40 ? '#f59e0b' : '#ef4444');
-            $tS    = strtolower($t['status_tank']);
+           // AFTER — use live sensor pct if available:
+$pct   = (int)round($t['live_pct'] ?? ($t['max_capacity'] > 0 ? ($t['current_liters']/$t['max_capacity'])*100 : 0));
+$color = $pct >= 75 ? '#3b82f6' : ($pct >= 40 ? '#f59e0b' : '#ef4444');$tS    = strtolower($t['status_tank']);
           ?>
           <div class="tank-item" style="border-color:<?= $t['anomaly_count']>0 ? '#fde68a' : 'var(--border)' ?>">
             <div class="tank-item-name"><?= htmlspecialchars($t['tankname']) ?></div>
@@ -380,8 +473,7 @@ function actionIconMgr(string $a): string {
               <div class="tank-fill-inner" style="width:<?= $pct ?>%;background:<?= $color ?>"></div>
             </div>
             <div class="tank-item-meta">
-              <span><?= number_format($t['current_liters']) ?>L / <?= number_format($t['max_capacity']) ?>L</span>
-              <span style="color:<?= $t['anomaly_count']>0 ? '#d97706' : 'var(--subtle)' ?>">
+              <span><?= number_format($t['live_liters'] ?? $t['current_liters']) ?>L / <?= number_format($t['max_capacity']) ?>L</span><span style="color:<?= $t['anomaly_count']>0 ? '#d97706' : 'var(--subtle)' ?>">
                 <?= $t['anomaly_count'] ?> anomaly<?= $t['anomaly_count'] != 1 ? 's' : '' ?>
               </span>
             </div>

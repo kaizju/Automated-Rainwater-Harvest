@@ -5,7 +5,7 @@ CONFIG = {
     "port":    "COM3",
     "baud":    9600,
     "api_url": "http://localhost/Automated-RainWater-Harvest/others/store.php",
-    "api_key": "demo_sensor_key_001",  # ← use this exact key from your DB
+    "api_key": "ecr_libona_sensor_001",  # ← must match DB exactly
 }
 
 def connect():
@@ -25,10 +25,20 @@ def send(pct, liters, status, alert, raw_adc):
             "api_key": CONFIG["api_key"],
             "pct":     pct,
             "liters":  liters,
+            "status":  status,
+            "alert":   alert,
+            "raw_adc": raw_adc,
         }
-        r    = requests.post(CONFIG["api_url"], json=payload, timeout=5)
+        r = requests.post(CONFIG["api_url"], json=payload, timeout=5)
+        
+        # Show raw response before trying to parse JSON
+        print(f"  [HTTP {r.status_code}] Raw response: {r.text[:200]}")
+        
         data = r.json()
-        print(f"  → pct:{pct}% | {liters}L | status:{status} | alert:{alert} | raw:{raw_adc} | HTTP {r.status_code}")
+        print(f"  → pct:{pct}% | {liters}L | status:{status} | alert:{alert} | raw:{raw_adc}")
+        
+    except requests.exceptions.JSONDecodeError:
+        print(f"  [SEND ERR] Server returned non-JSON: {r.text[:300]}")
     except Exception as e:
         print(f"  [SEND ERR] {e}")
 
